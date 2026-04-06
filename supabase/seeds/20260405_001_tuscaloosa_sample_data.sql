@@ -194,6 +194,32 @@ with item_seed (
       'Marked safe because the restaurant identifies the item as gluten-free when served without the bun.'
     ),
     (
+      'jim-n-nicks-bbq',
+      'Pulled Pork Plate',
+      'Plated pulled pork entree without bread-based sides.',
+      'Safe (Verified)',
+      'verified_safe',
+      'medium',
+      'restaurant_labeled',
+      null,
+      false,
+      true,
+      'Included as a safe sample item because plated barbecue can avoid bread by default when ordered carefully.'
+    ),
+    (
+      'jim-n-nicks-bbq',
+      'Macaroni and Cheese',
+      'Classic macaroni side dish.',
+      'Not Safe (Unverified)',
+      'not_safe',
+      'low',
+      'unknown',
+      'Ingredient details and preparation standards were not provided.',
+      false,
+      true,
+      'Flagged as not verified because gluten-free details were not provided for this side item.'
+    ),
+    (
       'the-sanctuary-on-25th',
       'Bacon Wrapped Dates',
       'Featured date appetizer.',
@@ -205,6 +231,32 @@ with item_seed (
       true,
       true,
       'Marked safe because the restaurant labels this item as gluten-free.'
+    ),
+    (
+      'the-sanctuary-on-25th',
+      'House Salad',
+      'Simple house salad with labeled gluten-free preparation.',
+      'Safe (Verified)',
+      'verified_safe',
+      'medium',
+      'restaurant_labeled',
+      null,
+      false,
+      true,
+      'Included as a safe sample item because salads are often explicitly labeled when the dressing and toppings meet the standard.'
+    ),
+    (
+      'the-sanctuary-on-25th',
+      'Seasonal Flatbread',
+      'Flatbread prepared with a standard crust.',
+      'Not Safe (Unverified)',
+      'not_safe',
+      'low',
+      'unknown',
+      'Flatbread commonly contains wheat unless a gluten-free crust is stated.',
+      false,
+      true,
+      'Flagged as not verified because no gluten-free crust or labeling was provided.'
     ),
     (
       'full-moon-bbq',
@@ -220,6 +272,32 @@ with item_seed (
       'Marked safe because the restaurant labels this item as gluten-free.'
     ),
     (
+      'full-moon-bbq',
+      'Smoked Turkey Plate',
+      'Plate-style smoked turkey entree.',
+      'Safe (Verified)',
+      'verified_safe',
+      'medium',
+      'restaurant_labeled',
+      null,
+      false,
+      true,
+      'Included as a safe sample item because plate-style barbecue items often work better than sandwich-based orders.'
+    ),
+    (
+      'full-moon-bbq',
+      'Texas Toast',
+      'Standard bread side.',
+      'Not Safe (Unverified)',
+      'not_safe',
+      'low',
+      'unknown',
+      'Bread item with no gluten-free claim.',
+      false,
+      true,
+      'Flagged as not verified because standard toast contains wheat.'
+    ),
+    (
       'standard-pizza-co',
       'Regular Pepperoni Pizza',
       'Standard wheat-crust pepperoni pizza.',
@@ -233,6 +311,32 @@ with item_seed (
       'Marked not safe because a regular pizza crust typically contains wheat gluten and no gluten-free claim was provided.'
     ),
     (
+      'standard-pizza-co',
+      'Cheese Pizza Slice',
+      'Standard slice-service cheese pizza.',
+      'Not Safe (Unverified)',
+      'not_safe',
+      'low',
+      'unknown',
+      'Standard slice service does not indicate a gluten-free crust.',
+      false,
+      true,
+      'Flagged as not verified because standard slice offerings usually rely on the same wheat crust.'
+    ),
+    (
+      'standard-pizza-co',
+      'Garden Salad',
+      'Simple salad option with labeled gluten-free preparation.',
+      'Safe (Verified)',
+      'verified_safe',
+      'medium',
+      'restaurant_labeled',
+      null,
+      false,
+      true,
+      'Included as a safe sample item because a simple salad is a more plausible gluten-free choice than standard pizza.'
+    ),
+    (
       'taco-casa',
       'Flour Tortilla Burrito',
       'Burrito served in a standard flour tortilla.',
@@ -244,6 +348,32 @@ with item_seed (
       true,
       true,
       'Marked not safe because flour tortillas typically contain wheat gluten and no gluten-free claim was provided.'
+    ),
+    (
+      'taco-casa',
+      'Crunchy Taco',
+      'Taco served in a crunchy shell.',
+      'Safe (Verified)',
+      'verified_safe',
+      'medium',
+      'restaurant_labeled',
+      null,
+      false,
+      true,
+      'Included as a safe sample item because crunchy taco shells can be a better gluten-free option than flour tortillas when labeled.'
+    ),
+    (
+      'taco-casa',
+      'Nachos',
+      'Tortilla-chip-based nacho order.',
+      'Safe (Verified)',
+      'verified_safe',
+      'medium',
+      'restaurant_labeled',
+      null,
+      false,
+      true,
+      'Included as a safe sample item because tortilla-chip-based items may better fit a gluten-free pattern than burritos.'
     )
 )
 insert into public.menu_items (
@@ -308,11 +438,53 @@ with source_seed (
       'User specified this item as Safe (Verified).'
     ),
     (
+      'jim-n-nicks-bbq',
+      'Pulled Pork Plate',
+      'other',
+      'Founder-provided sample data',
+      'Founder added this as an additional plated safe sample item for MVP wiring.'
+    ),
+    (
+      'jim-n-nicks-bbq',
+      'Macaroni and Cheese',
+      'other',
+      'Founder-provided sample data',
+      'Founder added this as an additional not-safe sample item for MVP wiring.'
+    ),
+    (
+      'the-sanctuary-on-25th',
+      'House Salad',
+      'other',
+      'Founder-provided sample data',
+      'Founder added this as an additional safe sample item for MVP wiring.'
+    ),
+    (
+      'the-sanctuary-on-25th',
+      'Seasonal Flatbread',
+      'other',
+      'Founder-provided sample data',
+      'Founder added this as an additional not-safe sample item for MVP wiring.'
+    ),
+    (
       'full-moon-bbq',
       'Loaded Bar-B-Q Baker',
       'other',
       'Founder-provided sample data',
       'User specified this item as Safe (Verified).'
+    ),
+    (
+      'full-moon-bbq',
+      'Smoked Turkey Plate',
+      'other',
+      'Founder-provided sample data',
+      'Founder added this as an additional safe sample item for MVP wiring.'
+    ),
+    (
+      'full-moon-bbq',
+      'Texas Toast',
+      'other',
+      'Founder-provided sample data',
+      'Founder added this as an additional not-safe sample item for MVP wiring.'
     ),
     (
       'standard-pizza-co',
@@ -322,11 +494,39 @@ with source_seed (
       'User specified this item as Not Safe (Unverified).'
     ),
     (
+      'standard-pizza-co',
+      'Cheese Pizza Slice',
+      'other',
+      'Founder-provided sample data',
+      'Founder added this as an additional not-safe sample item for MVP wiring.'
+    ),
+    (
+      'standard-pizza-co',
+      'Garden Salad',
+      'other',
+      'Founder-provided sample data',
+      'Founder added this as an additional safe sample item for MVP wiring.'
+    ),
+    (
       'taco-casa',
       'Flour Tortilla Burrito',
       'other',
       'Founder-provided sample data',
       'User specified this item as Not Safe (Unverified).'
+    ),
+    (
+      'taco-casa',
+      'Crunchy Taco',
+      'other',
+      'Founder-provided sample data',
+      'Founder added this as an additional safe sample item for MVP wiring.'
+    ),
+    (
+      'taco-casa',
+      'Nachos',
+      'other',
+      'Founder-provided sample data',
+      'Founder added this as an additional safe sample item for MVP wiring.'
     )
 )
 insert into public.verification_sources (
@@ -375,11 +575,53 @@ with record_seed (
       'Marked safe from founder-provided sample data because the restaurant labels this item gluten-free.'
     ),
     (
+      'jim-n-nicks-bbq',
+      'Pulled Pork Plate',
+      'approved',
+      'medium',
+      'Marked safe from founder-provided sample data because plated barbecue can avoid bread-based gluten when labeled and ordered carefully.'
+    ),
+    (
+      'jim-n-nicks-bbq',
+      'Macaroni and Cheese',
+      'rejected',
+      'low',
+      'Marked not safe from founder-provided sample data because gluten-free ingredient and preparation details were not provided.'
+    ),
+    (
+      'the-sanctuary-on-25th',
+      'House Salad',
+      'approved',
+      'medium',
+      'Marked safe from founder-provided sample data because labeled salad options are often a stronger gluten-free candidate.'
+    ),
+    (
+      'the-sanctuary-on-25th',
+      'Seasonal Flatbread',
+      'rejected',
+      'low',
+      'Marked not safe from founder-provided sample data because flatbread typically contains wheat unless a gluten-free crust is stated.'
+    ),
+    (
       'full-moon-bbq',
       'Loaded Bar-B-Q Baker',
       'approved',
       'medium',
       'Marked safe from founder-provided sample data because the restaurant labels this item gluten-free.'
+    ),
+    (
+      'full-moon-bbq',
+      'Smoked Turkey Plate',
+      'approved',
+      'medium',
+      'Marked safe from founder-provided sample data because a labeled plate-style protein item is a stronger gluten-free candidate than sandwich-based options.'
+    ),
+    (
+      'full-moon-bbq',
+      'Texas Toast',
+      'rejected',
+      'low',
+      'Marked not safe from founder-provided sample data because standard toast contains wheat.'
     ),
     (
       'standard-pizza-co',
@@ -389,11 +631,39 @@ with record_seed (
       'Marked not safe from founder-provided sample data because a standard pizza crust usually contains wheat gluten.'
     ),
     (
+      'standard-pizza-co',
+      'Cheese Pizza Slice',
+      'rejected',
+      'low',
+      'Marked not safe from founder-provided sample data because standard slice service usually uses the same wheat crust.'
+    ),
+    (
+      'standard-pizza-co',
+      'Garden Salad',
+      'approved',
+      'medium',
+      'Marked safe from founder-provided sample data because a simple salad is a more plausible gluten-free option than standard pizza.'
+    ),
+    (
       'taco-casa',
       'Flour Tortilla Burrito',
       'rejected',
       'low',
       'Marked not safe from founder-provided sample data because a flour tortilla usually contains wheat gluten.'
+    ),
+    (
+      'taco-casa',
+      'Crunchy Taco',
+      'approved',
+      'medium',
+      'Marked safe from founder-provided sample data because a crunchy taco shell can be a better gluten-free option than a flour tortilla when labeled.'
+    ),
+    (
+      'taco-casa',
+      'Nachos',
+      'approved',
+      'medium',
+      'Marked safe from founder-provided sample data because tortilla-chip-based items can better fit a gluten-free pattern than burritos.'
     )
 )
 insert into public.verification_records (
