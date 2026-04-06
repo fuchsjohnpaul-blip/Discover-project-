@@ -20,6 +20,7 @@ The app foundation is set up around:
 - A starter Supabase browser client
 - Environment variable template
 - A Google Maps-ready shell component that can load markers once an API key is configured
+- A homepage data loader that can read from Supabase and fall back to sample data when live configuration is not ready
 
 ## Product Access Model
 

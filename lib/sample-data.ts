@@ -1,6 +1,9 @@
 export type SampleMenuItem = {
   name: string;
-  status: "Verified Safe" | "Not Verified (Contains Gluten)";
+  status:
+    | "Verified Safe"
+    | "Not Verified (Contains Gluten)"
+    | "Needs Review";
   verificationMethod: string;
   confidenceNote: string;
   rationale: string;
@@ -17,6 +20,7 @@ export type SampleRestaurant = {
   menuItems: SampleMenuItem[];
   cautionSummary: string;
   detailSummary: string;
+  dataSource?: "supabase" | "sample";
 };
 
 export const sampleRestaurants: SampleRestaurant[] = [
@@ -58,7 +62,8 @@ export const sampleRestaurants: SampleRestaurant[] = [
     cautionSummary:
       "Ask the staff to confirm no bun and prevent bread cross-contact on shared prep surfaces.",
     detailSummary:
-      "A downtown barbecue option where protein-forward choices are the most promising gluten-free picks."
+      "A downtown barbecue option where protein-forward choices are the most promising gluten-free picks.",
+    dataSource: "sample"
   },
   {
     slug: "the-sanctuary-on-25th",
@@ -97,7 +102,8 @@ export const sampleRestaurants: SampleRestaurant[] = [
     cautionSummary:
       "Review sauces, garnish, and seasonal changes if the kitchen updates ingredients.",
     detailSummary:
-      "A more polished, small-plates style spot where labeled appetizers and lighter dishes stand out."
+      "A more polished, small-plates style spot where labeled appetizers and lighter dishes stand out.",
+    dataSource: "sample"
   },
   {
     slug: "full-moon-bbq",
@@ -136,7 +142,8 @@ export const sampleRestaurants: SampleRestaurant[] = [
     cautionSummary:
       "Double-check toppings and side swaps if ingredients rotate or sauces change.",
     detailSummary:
-      "A barbecue stop where potato and plate-based orders may offer better gluten-free potential than bread-heavy items."
+      "A barbecue stop where potato and plate-based orders may offer better gluten-free potential than bread-heavy items.",
+    dataSource: "sample"
   },
   {
     slug: "standard-pizza-co",
@@ -175,7 +182,8 @@ export const sampleRestaurants: SampleRestaurant[] = [
     cautionSummary:
       "Pizza environments often have flour in the air, so even safer options may need extra caution.",
     detailSummary:
-      "A pizza-focused restaurant where standard crust items should be treated carefully and non-pizza items may be the better path."
+      "A pizza-focused restaurant where standard crust items should be treated carefully and non-pizza items may be the better path.",
+    dataSource: "sample"
   },
   {
     slug: "taco-casa",
@@ -214,6 +222,7 @@ export const sampleRestaurants: SampleRestaurant[] = [
     cautionSummary:
       "Shared prep around flour tortillas can still matter, even when a corn-based option looks safer.",
     detailSummary:
-      "A fast-casual taco stop where corn-based items may offer a better gluten-free path than flour tortilla orders."
+      "A fast-casual taco stop where corn-based items may offer a better gluten-free path than flour tortilla orders.",
+    dataSource: "sample"
   }
 ];
