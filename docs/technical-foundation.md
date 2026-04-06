@@ -49,6 +49,10 @@ To enable the real map shell, the app will also need:
 NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_key_here
 ```
 
+For a fuller step-by-step guide, see:
+
+`docs/local-setup-checklist.md`
+
 ## Next Build Priorities
 
 1. Install dependencies and verify the app runs
