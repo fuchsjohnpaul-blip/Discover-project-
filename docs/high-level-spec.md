@@ -105,6 +105,7 @@ In the first version, "verified" should mean we have structured evidence from on
 - Structured menu-item display
 - Basic verification/confidence labeling
 - Admin-managed or seeded restaurant/menu dataset for the earliest release
+- A small hand-picked list of trusted Tuscaloosa restaurants curated carefully before launch
 
 ### Out of Scope for the Earliest Version
 
@@ -149,6 +150,21 @@ We will refine this later, but the first version will likely need:
 
 This structure will let us distinguish between a restaurant being generally friendly to a diet and a specific menu item being verified as safe.
 
+## MVP Data Strategy
+
+The first release will favor trust over coverage.
+
+Instead of trying to include every restaurant in Tuscaloosa, we will begin with a smaller curated set of restaurants that we review carefully.
+
+This means:
+
+- We only show restaurants we have actively reviewed
+- We prefer fewer results with higher confidence
+- Menu items should be tied to source evidence wherever possible
+- We can manually update records when restaurant menus change
+
+This curated approach is a strong fit for the MVP because it reduces risk, improves trust, and gives us a manageable operational starting point.
+
 ## Important Trust and Safety Notes
 
 Because this app relates to health and dietary safety, we should be careful with wording.
@@ -175,6 +191,7 @@ Examples of safer wording:
 ### Phase 2: Verified Dining MVP
 
 - Add seeded restaurant and menu data
+- Curate the first trusted Tuscaloosa restaurant set
 - Build verification pipeline and confidence labels
 - Add filters for gluten-free categories
 - Improve restaurant detail panel with verified menu items
