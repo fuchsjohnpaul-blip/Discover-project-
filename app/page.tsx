@@ -5,6 +5,7 @@ import { useState } from "react";
 import { MapPin, ShieldCheck, UtensilsCrossed } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { GoogleMapShell } from "@/components/google-map-shell";
 import { sampleRestaurants } from "@/lib/sample-data";
 import { cn } from "@/lib/utils";
 
@@ -54,9 +55,6 @@ export default function HomePage() {
       (restaurant) => restaurant.slug === selectedRestaurantSlug
     ) ?? filteredRestaurants[0];
   const featuredItem = selectedRestaurant?.menuItems[0];
-
-  const latitudePosition = `${12 + ((selectedRestaurant?.latitude ?? 33.2098) - 33.18) * 42}%`;
-  const longitudePosition = `${20 + (((selectedRestaurant?.longitude ?? -87.56) + 87.59) * 70)}%`;
 
   return (
     <main className="min-h-screen px-6 py-8 md:px-10 lg:px-12">
@@ -191,54 +189,10 @@ export default function HomePage() {
                   <Button size="sm">Use my location</Button>
                 </div>
 
-                <div className="relative mt-4 flex-1 overflow-hidden rounded-[1.25rem] border bg-[#efe5cc]">
-                  <div className="absolute inset-0 opacity-70 [background-image:linear-gradient(rgba(120,110,84,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(120,110,84,0.12)_1px,transparent_1px)] [background-size:42px_42px]" />
-                  {filteredRestaurants.map((restaurant) => {
-                    const top = `${12 + (restaurant.latitude - 33.18) * 42}%`;
-                    const left = `${20 + ((restaurant.longitude + 87.59) * 70)}%`;
-                    const isSelected = restaurant.slug === selectedRestaurant?.slug;
-
-                    return (
-                      <div
-                        key={restaurant.slug}
-                        className={cn(
-                          "absolute h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full transition-all",
-                          isSelected
-                            ? "bg-primary shadow-[0_0_0_8px_rgba(48,112,87,0.22)]"
-                            : "bg-accent shadow-[0_0_0_6px_rgba(244,180,76,0.18)]"
-                        )}
-                        style={{ top, left }}
-                      />
-                    );
-                  })}
-                  {selectedRestaurant ? (
-                    <div
-                      className="absolute -translate-x-1/2 -translate-y-full rounded-2xl border bg-white/95 px-3 py-2 shadow-lg backdrop-blur"
-                      style={{ top: latitudePosition, left: longitudePosition }}
-                    >
-                      <p className="text-sm font-semibold">{selectedRestaurant.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {featuredItem?.name}
-                      </p>
-                    </div>
-                  ) : null}
-                  <div className="absolute inset-x-4 bottom-4 rounded-2xl bg-white/92 p-4 shadow-lg backdrop-blur">
-                    <p className="text-sm font-semibold">Map as a discovery companion</p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      The selected restaurant stays visually in sync here, so
-                      the map and detail panel point to the same place.
-                    </p>
-                  </div>
-
-                  {filteredRestaurants.length === 0 ? (
-                    <div className="absolute inset-6 flex items-center justify-center rounded-[1.25rem] border border-dashed bg-white/80 p-6 text-center">
-                      <p className="max-w-sm text-sm leading-6 text-muted-foreground">
-                        No restaurants match this filter yet. We can broaden the
-                        sample dataset or adjust the filter logic next.
-                      </p>
-                    </div>
-                  ) : null}
-                </div>
+                <GoogleMapShell
+                  restaurants={filteredRestaurants}
+                  selectedRestaurant={selectedRestaurant}
+                />
               </div>
             </section>
           </div>

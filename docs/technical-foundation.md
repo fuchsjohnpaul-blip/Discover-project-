@@ -19,6 +19,7 @@ The app foundation is set up around:
 - Utility helpers
 - A starter Supabase browser client
 - Environment variable template
+- A Google Maps-ready shell component that can load markers once an API key is configured
 
 ## Product Access Model
 
@@ -42,10 +43,16 @@ After that, local development should be:
 npm run dev
 ```
 
+To enable the real map shell, the app will also need:
+
+```bash
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_key_here
+```
+
 ## Next Build Priorities
 
 1. Install dependencies and verify the app runs
 2. Add real shadcn/ui components through the CLI or manually as needed
 3. Seed the Supabase schema with trusted Tuscaloosa restaurant data
-4. Integrate Google Maps
-5. Replace placeholder homepage data with real Tuscaloosa seed data
+4. Verify the live Google Maps shell with an API key
+5. Replace sample-data wiring with Supabase-backed reads
