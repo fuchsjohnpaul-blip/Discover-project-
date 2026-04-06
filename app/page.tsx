@@ -14,19 +14,19 @@ const featuredRestaurants = [
   {
     name: "Riverwalk Kitchen",
     category: "Dedicated GF Menu",
-    note: "11 verified items",
+    note: "11 verified items and a lively downtown feel",
     distance: "0.7 mi"
   },
   {
     name: "Druid City Bowls",
     category: "100% Gluten-Free",
-    note: "Entire menu marked safe",
+    note: "Entire menu marked safe for easy everyday dining",
     distance: "1.1 mi"
   },
   {
     name: "Campus Table",
     category: "Verified Menu Items",
-    note: "6 items with source-backed notes",
+    note: "6 items with source-backed notes and clear caution guidance",
     distance: "1.8 mi"
   }
 ];
@@ -42,17 +42,18 @@ export default function HomePage() {
                 Launch city: Tuscaloosa, Alabama
               </span>
               <span className="rounded-full border px-3 py-1">
-                Gluten-free dining MVP
+                Discovery-first gluten-free guide
               </span>
             </div>
 
             <div className="mt-6 max-w-2xl space-y-4">
               <h1 className="text-4xl font-semibold tracking-tight md:text-6xl">
-                A safer way to find gluten-free restaurants you can actually trust.
+                Discover Tuscaloosa restaurants with gluten-free confidence built in.
               </h1>
               <p className="text-lg leading-8 text-muted-foreground">
-                We start with Tuscaloosa and go beyond generic tags by showing
-                menu-level gluten-free items with clear confidence notes.
+                Browse places that look worth visiting, then see menu-level
+                gluten-free guidance, confidence notes, and caution details
+                before you decide.
               </p>
             </div>
 
@@ -72,18 +73,18 @@ export default function HomePage() {
             <div className="mt-8 grid gap-4 md:grid-cols-3">
               <InsightCard
                 icon={<MapPin className="h-5 w-5" />}
-                title="Map-first search"
-                description="Discover nearby restaurants visually, the way people naturally browse when deciding where to eat."
+                title="Explore nearby picks"
+                description="Browse restaurants visually, the way people naturally discover where they want to eat."
               />
               <InsightCard
                 icon={<ShieldCheck className="h-5 w-5" />}
-                title="Verification layer"
-                description="Use actual menu evidence and caution notes instead of relying on broad restaurant tags alone."
+                title="Built-in safety clarity"
+                description="See menu evidence and caution notes alongside each place instead of relying on generic tags alone."
               />
               <InsightCard
                 icon={<UtensilsCrossed className="h-5 w-5" />}
-                title="Menu-level clarity"
-                description="Tap a place to see specific items that appear safe, not just a vague gluten-free label."
+                title="Dining decisions made easier"
+                description="Open a restaurant to view specific gluten-free items and practical notes before heading out."
               />
             </div>
           </div>
@@ -106,10 +107,10 @@ export default function HomePage() {
                 <div className="absolute left-[58%] top-[36%] h-5 w-5 rounded-full bg-accent shadow-[0_0_0_8px_rgba(244,180,76,0.2)]" />
                 <div className="absolute left-[44%] top-[62%] h-5 w-5 rounded-full bg-primary shadow-[0_0_0_8px_rgba(48,112,87,0.18)]" />
                 <div className="absolute inset-x-4 bottom-4 rounded-2xl bg-white/92 p-4 shadow-lg backdrop-blur">
-                  <p className="text-sm font-semibold">Verified map experience</p>
+                  <p className="text-sm font-semibold">Discovery with trust layered in</p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Next.js shell is ready for a real mapping provider and
-                    Supabase-backed restaurant data.
+                    The app shell is ready for a real map, curated Tuscaloosa
+                    restaurants, and menu-backed gluten-free guidance.
                   </p>
                 </div>
               </div>
@@ -123,9 +124,10 @@ export default function HomePage() {
               Restaurant detail preview
             </p>
             <div className="mt-4 space-y-4">
-              <h2 className="text-2xl font-semibold">What a user should see</h2>
+              <h2 className="text-2xl font-semibold">What a user should discover</h2>
               <ul className="space-y-3 text-sm leading-7 text-muted-foreground">
                 <li>Name, distance, and neighborhood</li>
+                <li>Why the place is worth considering</li>
                 <li>Safety category with confidence note</li>
                 <li>Specific gluten-free menu items</li>
                 <li>Source-backed caveats when caution is needed</li>

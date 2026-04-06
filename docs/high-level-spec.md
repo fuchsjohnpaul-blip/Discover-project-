@@ -6,6 +6,8 @@ Build a web application that helps people with dietary restrictions discover res
 
 The first version will focus on gluten-free dining and will prioritize clarity, confidence, and ease of use over trying to cover every dietary need at once.
 
+The product should feel primarily like a discovery-oriented dining app, with strong safety information built directly into the browsing experience.
+
 ## Core Problem
 
 Existing apps often label restaurants as "gluten-free" without confirming which menu items are actually safe.
@@ -38,6 +40,8 @@ Benefits of this approach:
 
 Help a user open the app, see gluten-free-friendly restaurants in Tuscaloosa on a map, filter by dietary safety level, and tap into a restaurant to view verified gluten-free menu items and supporting details.
 
+The experience should feel inviting and useful for exploring where to eat, not only for checking risk.
+
 ## Core User Experience
 
 ### 1. Map Interface
@@ -53,6 +57,8 @@ Users should be able to:
 ### 2. Search and Filters
 
 Users should be able to search by place or area and filter restaurants by dietary safety level.
+
+The filters should help users narrow choices quickly while still encouraging exploration.
 
 Early filters may include:
 
@@ -72,6 +78,8 @@ When a user selects a restaurant, the app should show:
 - Specific verified gluten-free menu items
 - Important safety notes or caveats when available
 
+The detail view should balance practical safety information with the feeling of discovering a place worth visiting.
+
 ### 4. Verification Layer
 
 This is the main differentiator of the product.
@@ -88,10 +96,22 @@ In the first version, "verified" should mean we have structured evidence from on
 ## Product Principles
 
 - Safety-first: avoid overstating confidence
+- Discovery-friendly: make browsing feel enjoyable and useful
 - Transparent: explain why an item is shown as safe
 - Simple: make it easy for non-technical users to understand
 - Trustworthy: clearly separate verified items from uncertain ones
 - Expandable: design the system so other dietary restrictions can be added later
+
+## Product Positioning
+
+For the MVP, the app should be positioned as a dining discovery product first, with trustworthy gluten-free intelligence as its advantage.
+
+That means:
+
+- The map and browsing experience should feel welcoming and easy to explore
+- Restaurants should still feel appealing, not clinical
+- Safety information should be clearly available without making the interface feel overly medical
+- Verification and caution notes remain essential, but they support discovery rather than dominate it
 
 ## Suggested MVP Scope
 
