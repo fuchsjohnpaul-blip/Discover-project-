@@ -95,6 +95,20 @@ The first draft schema lives at:
 
 `supabase/migrations/20260405_001_initial_schema.sql`
 
+## Current Seed File
+
+The first Tuscaloosa sample seed data lives at:
+
+`supabase/seeds/20260405_001_tuscaloosa_sample_data.sql`
+
+## Current Dataset Shape
+
+The seed data currently includes:
+
+- 5 approved sample restaurants
+- 5 featured menu items
+- Source and verification records for each item
+
 ## Likely Next Schema Step
 
-The next iteration will probably add starter seed data for a few example Tuscaloosa restaurants so we can start wiring the UI to real records.
+The next iteration will probably replace placeholder restaurant location details with confirmed addresses, links, and coordinates.
