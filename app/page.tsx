@@ -11,6 +11,8 @@ const filters = [
   "Nearby Now"
 ];
 
+const selectedRestaurant = sampleRestaurants[0];
+
 export default function HomePage() {
   return (
     <main className="min-h-screen px-6 py-8 md:px-10 lg:px-12">
@@ -152,40 +154,89 @@ export default function HomePage() {
         <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
           <div className="rounded-[2rem] border bg-white/75 p-6 shadow-[0_24px_64px_rgba(68,60,42,0.1)] backdrop-blur">
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-              Restaurant detail preview
+              Restaurant detail panel
             </p>
             <div className="mt-4 space-y-4">
-              <h2 className="text-2xl font-semibold">Verified menu items come first</h2>
-              <ul className="space-y-3 text-sm leading-7 text-muted-foreground">
-                <li>Specific gluten-free menu items</li>
-                <li>Confidence notes near the items</li>
-                <li>Restaurant name, distance, and neighborhood</li>
-                <li>Why the place is worth considering</li>
-                <li>Safety category with supporting context</li>
-                <li>Smaller supporting section for caution details when needed</li>
-              </ul>
+              <h2 className="text-2xl font-semibold">
+                Item-first detail experience
+              </h2>
+              <p className="text-sm leading-7 text-muted-foreground">
+                This preview shows the structure we can use when someone taps a
+                restaurant: verified item first, confidence nearby, and caution
+                information in a quieter supporting area.
+              </p>
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
-            {sampleRestaurants.slice(0, 3).map((restaurant) => (
-              <article
-                key={restaurant.slug}
-                className="rounded-[1.75rem] border bg-white/80 p-5 shadow-[0_20px_40px_rgba(68,60,42,0.08)] transition hover:-translate-y-0.5"
-              >
+          <article className="rounded-[2rem] border bg-white/85 p-6 shadow-[0_24px_64px_rgba(68,60,42,0.1)] backdrop-blur">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                  {restaurant.verificationMethod}
+                  Live sample preview
                 </p>
-                <h3 className="mt-3 text-xl font-semibold">{restaurant.name}</h3>
-                <p className="mt-2 inline-flex rounded-full bg-secondary px-3 py-1 text-sm font-medium text-secondary-foreground">
-                  {restaurant.itemStatus}
+                <h3 className="mt-2 text-3xl font-semibold">
+                  {selectedRestaurant.name}
+                </h3>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {selectedRestaurant.address}
                 </p>
-                <p className="mt-4 text-sm leading-6 text-muted-foreground">
-                  {restaurant.itemName}
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {selectedRestaurant.neighborhood}
                 </p>
-              </article>
-            ))}
-          </div>
+              </div>
+              <span className="inline-flex rounded-full bg-secondary px-3 py-1 text-sm font-medium text-secondary-foreground">
+                {selectedRestaurant.glutenSafetyCategory}
+              </span>
+            </div>
+
+            <div className="mt-6 rounded-[1.5rem] border bg-background/80 p-5">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                    Verified gluten-free item
+                  </p>
+                  <h4 className="mt-2 text-2xl font-semibold">
+                    {selectedRestaurant.itemName}
+                  </h4>
+                </div>
+                <span className="inline-flex rounded-full bg-primary px-3 py-1 text-sm font-medium text-primary-foreground">
+                  {selectedRestaurant.itemStatus}
+                </span>
+              </div>
+
+              <p className="mt-4 text-sm leading-6 text-muted-foreground">
+                {selectedRestaurant.rationale}
+              </p>
+
+              <div className="mt-5 grid gap-4 md:grid-cols-2">
+                <div className="rounded-[1.25rem] border bg-white/80 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                    Confidence
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-foreground">
+                    {selectedRestaurant.confidenceNote}
+                  </p>
+                </div>
+                <div className="rounded-[1.25rem] border bg-white/80 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                    Verification basis
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-foreground">
+                    {selectedRestaurant.verificationMethod}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-5 rounded-[1.5rem] border border-dashed bg-white/70 p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Supporting caution section
+              </p>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                {selectedRestaurant.cautionSummary}
+              </p>
+            </div>
+          </article>
         </section>
       </div>
     </main>
