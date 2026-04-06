@@ -21,9 +21,22 @@ People who need or strongly prefer gluten-free food, including:
 - Parents, partners, or caregivers helping someone eat safely
 - Travelers trying to find trustworthy nearby options quickly
 
+## Launch Geography
+
+The first launch market will be `Tuscaloosa, Alabama`.
+
+This means the MVP should optimize for depth and trust in one city instead of shallow coverage everywhere.
+
+Benefits of this approach:
+
+- Higher data quality in the first release
+- Easier manual verification of restaurant and menu data
+- More realistic MVP scope
+- Stronger local testing before expanding to other cities
+
 ## First Version Goal
 
-Help a user open the app, see nearby restaurants on a map, filter for gluten-free suitability, and tap into a restaurant to view verified gluten-free menu items and supporting details.
+Help a user open the app, see gluten-free-friendly restaurants in Tuscaloosa on a map, filter by dietary safety level, and tap into a restaurant to view verified gluten-free menu items and supporting details.
 
 ## Core User Experience
 
