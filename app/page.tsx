@@ -1,6 +1,7 @@
 import { MapPin, ShieldCheck, UtensilsCrossed } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { sampleRestaurants } from "@/lib/sample-data";
 import { cn } from "@/lib/utils";
 
 const filters = [
@@ -8,27 +9,6 @@ const filters = [
   "Dedicated GF Menu",
   "Verified Menu Items",
   "Nearby Now"
-];
-
-const featuredRestaurants = [
-  {
-    name: "Riverwalk Kitchen",
-    category: "Dedicated GF Menu",
-    note: "11 verified items and a lively downtown feel",
-    distance: "0.7 mi"
-  },
-  {
-    name: "Druid City Bowls",
-    category: "100% Gluten-Free",
-    note: "Entire menu marked safe for easy everyday dining",
-    distance: "1.1 mi"
-  },
-  {
-    name: "Campus Table",
-    category: "Verified Menu Items",
-    note: "6 items with source-backed notes and clear caution guidance",
-    distance: "1.8 mi"
-  }
 ];
 
 export default function HomePage() {
@@ -86,26 +66,35 @@ export default function HomePage() {
               </div>
 
               <div className="grid gap-4">
-                {featuredRestaurants.map((restaurant) => (
+                {sampleRestaurants.map((restaurant) => (
                   <article
-                    key={restaurant.name}
+                    key={restaurant.slug}
                     className="rounded-[1.75rem] border bg-white/85 p-5 shadow-[0_20px_40px_rgba(68,60,42,0.08)] transition hover:-translate-y-0.5"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                          {restaurant.distance}
+                          {restaurant.verificationMethod}
                         </p>
                         <h3 className="mt-2 text-xl font-semibold">
                           {restaurant.name}
                         </h3>
+                        <p className="mt-2 text-sm text-muted-foreground">
+                          {restaurant.address}
+                        </p>
                       </div>
                       <span className="inline-flex rounded-full bg-secondary px-3 py-1 text-sm font-medium text-secondary-foreground">
-                        {restaurant.category}
+                        {restaurant.glutenSafetyCategory}
                       </span>
                     </div>
                     <p className="mt-4 max-w-xl text-sm leading-6 text-muted-foreground">
-                      {restaurant.note}
+                      <span className="font-semibold text-foreground">
+                        {restaurant.itemName}
+                      </span>{" "}
+                      -> {restaurant.itemStatus}
+                    </p>
+                    <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
+                      {restaurant.rationale}
                     </p>
                   </article>
                 ))}
@@ -179,20 +168,20 @@ export default function HomePage() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
-            {featuredRestaurants.map((restaurant) => (
+            {sampleRestaurants.slice(0, 3).map((restaurant) => (
               <article
-                key={restaurant.name}
+                key={restaurant.slug}
                 className="rounded-[1.75rem] border bg-white/80 p-5 shadow-[0_20px_40px_rgba(68,60,42,0.08)] transition hover:-translate-y-0.5"
               >
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                  {restaurant.distance}
+                  {restaurant.verificationMethod}
                 </p>
                 <h3 className="mt-3 text-xl font-semibold">{restaurant.name}</h3>
                 <p className="mt-2 inline-flex rounded-full bg-secondary px-3 py-1 text-sm font-medium text-secondary-foreground">
-                  {restaurant.category}
+                  {restaurant.itemStatus}
                 </p>
                 <p className="mt-4 text-sm leading-6 text-muted-foreground">
-                  {restaurant.note}
+                  {restaurant.itemName}
                 </p>
               </article>
             ))}
