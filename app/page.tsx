@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+
 import { MapPin, ShieldCheck, UtensilsCrossed } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -11,9 +15,16 @@ const filters = [
   "Nearby Now"
 ];
 
-const selectedRestaurant = sampleRestaurants[0];
-
 export default function HomePage() {
+  const [selectedRestaurantSlug, setSelectedRestaurantSlug] = useState(
+    sampleRestaurants[0]?.slug ?? ""
+  );
+
+  const selectedRestaurant =
+    sampleRestaurants.find(
+      (restaurant) => restaurant.slug === selectedRestaurantSlug
+    ) ?? sampleRestaurants[0];
+
   return (
     <main className="min-h-screen px-6 py-8 md:px-10 lg:px-12">
       <div className="mx-auto flex max-w-7xl flex-col gap-8">
@@ -69,9 +80,15 @@ export default function HomePage() {
 
               <div className="grid gap-4">
                 {sampleRestaurants.map((restaurant) => (
-                  <article
+                  <button
                     key={restaurant.slug}
-                    className="rounded-[1.75rem] border bg-white/85 p-5 shadow-[0_20px_40px_rgba(68,60,42,0.08)] transition hover:-translate-y-0.5"
+                    type="button"
+                    onClick={() => setSelectedRestaurantSlug(restaurant.slug)}
+                    className={cn(
+                      "rounded-[1.75rem] border bg-white/85 p-5 text-left shadow-[0_20px_40px_rgba(68,60,42,0.08)] transition hover:-translate-y-0.5",
+                      selectedRestaurant.slug === restaurant.slug &&
+                        "border-primary ring-2 ring-primary/20"
+                    )}
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div>
@@ -98,7 +115,7 @@ export default function HomePage() {
                     <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
                       {restaurant.rationale}
                     </p>
-                  </article>
+                  </button>
                 ))}
               </div>
 
@@ -175,17 +192,17 @@ export default function HomePage() {
                   Live sample preview
                 </p>
                 <h3 className="mt-2 text-3xl font-semibold">
-                  {selectedRestaurant.name}
+                  {selectedRestaurant?.name}
                 </h3>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  {selectedRestaurant.address}
+                  {selectedRestaurant?.address}
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {selectedRestaurant.neighborhood}
+                  {selectedRestaurant?.neighborhood}
                 </p>
               </div>
               <span className="inline-flex rounded-full bg-secondary px-3 py-1 text-sm font-medium text-secondary-foreground">
-                {selectedRestaurant.glutenSafetyCategory}
+                {selectedRestaurant?.glutenSafetyCategory}
               </span>
             </div>
 
@@ -196,16 +213,16 @@ export default function HomePage() {
                     Verified gluten-free item
                   </p>
                   <h4 className="mt-2 text-2xl font-semibold">
-                    {selectedRestaurant.itemName}
+                    {selectedRestaurant?.itemName}
                   </h4>
                 </div>
                 <span className="inline-flex rounded-full bg-primary px-3 py-1 text-sm font-medium text-primary-foreground">
-                  {selectedRestaurant.itemStatus}
+                  {selectedRestaurant?.itemStatus}
                 </span>
               </div>
 
               <p className="mt-4 text-sm leading-6 text-muted-foreground">
-                {selectedRestaurant.rationale}
+                {selectedRestaurant?.rationale}
               </p>
 
               <div className="mt-5 grid gap-4 md:grid-cols-2">
@@ -214,7 +231,7 @@ export default function HomePage() {
                     Confidence
                   </p>
                   <p className="mt-2 text-sm leading-6 text-foreground">
-                    {selectedRestaurant.confidenceNote}
+                    {selectedRestaurant?.confidenceNote}
                   </p>
                 </div>
                 <div className="rounded-[1.25rem] border bg-white/80 p-4">
@@ -222,7 +239,7 @@ export default function HomePage() {
                     Verification basis
                   </p>
                   <p className="mt-2 text-sm leading-6 text-foreground">
-                    {selectedRestaurant.verificationMethod}
+                    {selectedRestaurant?.verificationMethod}
                   </p>
                 </div>
               </div>
@@ -233,7 +250,7 @@ export default function HomePage() {
                 Supporting caution section
               </p>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                {selectedRestaurant.cautionSummary}
+                {selectedRestaurant?.cautionSummary}
               </p>
             </div>
           </article>
