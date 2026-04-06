@@ -25,6 +25,9 @@ export default function HomePage() {
       (restaurant) => restaurant.slug === selectedRestaurantSlug
     ) ?? sampleRestaurants[0];
 
+  const latitudePosition = `${12 + ((selectedRestaurant?.latitude ?? 33.2098) - 33.18) * 42}%`;
+  const longitudePosition = `${20 + (((selectedRestaurant?.longitude ?? -87.56) + 87.59) * 70)}%`;
+
   return (
     <main className="min-h-screen px-6 py-8 md:px-10 lg:px-12">
       <div className="mx-auto flex max-w-7xl flex-col gap-8">
@@ -152,14 +155,38 @@ export default function HomePage() {
 
                 <div className="relative mt-4 flex-1 overflow-hidden rounded-[1.25rem] border bg-[#efe5cc]">
                   <div className="absolute inset-0 opacity-70 [background-image:linear-gradient(rgba(120,110,84,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(120,110,84,0.12)_1px,transparent_1px)] [background-size:42px_42px]" />
-                  <div className="absolute left-[18%] top-[26%] h-5 w-5 rounded-full bg-primary shadow-[0_0_0_8px_rgba(48,112,87,0.18)]" />
-                  <div className="absolute left-[58%] top-[36%] h-5 w-5 rounded-full bg-accent shadow-[0_0_0_8px_rgba(244,180,76,0.2)]" />
-                  <div className="absolute left-[44%] top-[62%] h-5 w-5 rounded-full bg-primary shadow-[0_0_0_8px_rgba(48,112,87,0.18)]" />
+                  {sampleRestaurants.map((restaurant) => {
+                    const top = `${12 + (restaurant.latitude - 33.18) * 42}%`;
+                    const left = `${20 + ((restaurant.longitude + 87.59) * 70)}%`;
+                    const isSelected = restaurant.slug === selectedRestaurant.slug;
+
+                    return (
+                      <div
+                        key={restaurant.slug}
+                        className={cn(
+                          "absolute h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full transition-all",
+                          isSelected
+                            ? "bg-primary shadow-[0_0_0_8px_rgba(48,112,87,0.22)]"
+                            : "bg-accent shadow-[0_0_0_6px_rgba(244,180,76,0.18)]"
+                        )}
+                        style={{ top, left }}
+                      />
+                    );
+                  })}
+                  <div
+                    className="absolute -translate-x-1/2 -translate-y-full rounded-2xl border bg-white/95 px-3 py-2 shadow-lg backdrop-blur"
+                    style={{ top: latitudePosition, left: longitudePosition }}
+                  >
+                    <p className="text-sm font-semibold">{selectedRestaurant.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {selectedRestaurant.itemName}
+                    </p>
+                  </div>
                   <div className="absolute inset-x-4 bottom-4 rounded-2xl bg-white/92 p-4 shadow-lg backdrop-blur">
                     <p className="text-sm font-semibold">Map as a discovery companion</p>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      The featured list leads the experience, while the map
-                      helps users see where each trusted option fits.
+                      The selected restaurant stays visually in sync here, so
+                      the map and detail panel point to the same place.
                     </p>
                   </div>
                 </div>
