@@ -169,11 +169,11 @@ export default function HomePage() {
               <h2 className="text-2xl font-semibold">Verified menu items come first</h2>
               <ul className="space-y-3 text-sm leading-7 text-muted-foreground">
                 <li>Specific gluten-free menu items</li>
-                <li>Confidence and caution notes for each item</li>
+                <li>Confidence notes near the items</li>
                 <li>Restaurant name, distance, and neighborhood</li>
                 <li>Why the place is worth considering</li>
                 <li>Safety category with supporting context</li>
-                <li>Source-backed caveats when caution is needed</li>
+                <li>Smaller supporting section for caution details when needed</li>
               </ul>
             </div>
           </div>

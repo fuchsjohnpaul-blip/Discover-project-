@@ -86,6 +86,8 @@ When a user selects a restaurant, the app should show:
 
 The detail view should lead with the verified gluten-free items first, then provide the restaurant overview and supporting context underneath.
 
+Important caution information should still be available, but it should live in a smaller supporting section so the overall experience stays clean and easy to browse.
+
 The detail view should balance practical safety information with the feeling of discovering a place worth visiting.
 
 ### 4. Verification Layer
@@ -125,6 +127,7 @@ That means:
 - Restaurants should still feel appealing, not clinical
 - Safety information should be clearly available without making the interface feel overly medical
 - Verification and caution notes remain essential, but they support discovery rather than dominate it
+- Caution details should be visually quieter than the primary verified menu content
 
 ## Suggested MVP Scope
 
