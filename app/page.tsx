@@ -166,12 +166,13 @@ export default function HomePage() {
               Restaurant detail preview
             </p>
             <div className="mt-4 space-y-4">
-              <h2 className="text-2xl font-semibold">What a user should discover</h2>
+              <h2 className="text-2xl font-semibold">Verified menu items come first</h2>
               <ul className="space-y-3 text-sm leading-7 text-muted-foreground">
-                <li>Name, distance, and neighborhood</li>
-                <li>Why the place is worth considering</li>
-                <li>Safety category with confidence note</li>
                 <li>Specific gluten-free menu items</li>
+                <li>Confidence and caution notes for each item</li>
+                <li>Restaurant name, distance, and neighborhood</li>
+                <li>Why the place is worth considering</li>
+                <li>Safety category with supporting context</li>
                 <li>Source-backed caveats when caution is needed</li>
               </ul>
             </div>

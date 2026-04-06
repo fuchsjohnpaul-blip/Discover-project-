@@ -77,12 +77,14 @@ Early filters may include:
 
 When a user selects a restaurant, the app should show:
 
+- Specific verified gluten-free menu items
 - Restaurant name
 - Location
 - Dietary-safety category
 - Summary of why it appears in results
-- Specific verified gluten-free menu items
 - Important safety notes or caveats when available
+
+The detail view should lead with the verified gluten-free items first, then provide the restaurant overview and supporting context underneath.
 
 The detail view should balance practical safety information with the feeling of discovering a place worth visiting.
 
