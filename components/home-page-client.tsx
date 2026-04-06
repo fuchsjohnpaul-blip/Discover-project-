@@ -163,7 +163,7 @@ export function HomePageClient({
                       <span className="font-semibold text-foreground">
                         {restaurant.menuItems[0]?.name}
                       </span>{" "}
-                      -> {restaurant.menuItems[0]?.status}
+                      {"->"} {restaurant.menuItems[0]?.status}
                     </p>
                     <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
                       {restaurant.detailSummary}
