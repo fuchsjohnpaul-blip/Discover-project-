@@ -25,6 +25,11 @@ Stores the restaurant itself, including:
 - Cross-contact risk
 - Review and publish status
 
+For MVP behavior, the app should only query restaurants where:
+
+- `review_status = 'approved'`
+- `is_published = true`
+
 ### `restaurant_hours`
 
 Stores open hours by day so the app can later support "open now" style filters.
@@ -43,6 +48,8 @@ Important fields include:
 - `confidence_level`
 - `caution_notes`
 - `is_published`
+
+Menu items should only appear publicly when they are approved for a published restaurant workflow.
 
 ### `verification_sources`
 
@@ -67,6 +74,16 @@ This helps us separate raw source material from the actual product decision abou
 - It allows manual review before publishing
 - It makes confidence visible in the data model
 - It creates a clean path toward admin tooling later
+
+## Public Data Rule
+
+When we build the app queries, the public-facing experience should only read records that are ready for release.
+
+At minimum:
+
+- Restaurants must be `approved` and `is_published = true`
+- Menu items must be `is_published = true`
+- Menu items should only be shown for published restaurants
 
 ## Current Migration File
 

@@ -126,6 +126,7 @@ That means:
 - Basic verification/confidence labeling
 - Admin-managed or seeded restaurant/menu dataset for the earliest release
 - A small hand-picked list of trusted Tuscaloosa restaurants curated carefully before launch
+- Only restaurants and menu items that have been manually reviewed and approved should appear in the app
 
 ### Out of Scope for the Earliest Version
 
@@ -179,6 +180,7 @@ Instead of trying to include every restaurant in Tuscaloosa, we will begin with 
 This means:
 
 - We only show restaurants we have actively reviewed
+- We only publish restaurants after manual approval
 - We prefer fewer results with higher confidence
 - Menu items should be tied to source evidence wherever possible
 - We can manually update records when restaurant menus change

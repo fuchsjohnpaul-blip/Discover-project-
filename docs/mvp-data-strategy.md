@@ -17,6 +17,8 @@ This is intentionally a curation-first product strategy, not a marketplace strat
 
 A restaurant should only be included in the first release if we have enough evidence to feel comfortable presenting it to users.
 
+For the MVP, "trusted" also means manually reviewed and explicitly approved by us before it is visible in the app.
+
 That evidence may include:
 
 - Current menu text
@@ -49,6 +51,18 @@ That tradeoff supports the brand promise of trust and safety.
 - Review menu items manually before publishing them
 - Use a clear publish flag so only approved data is shown in the app
 - Track when each restaurant and menu item was last reviewed
+
+## Publishing Rule
+
+The public app should only show restaurants when both of these are true:
+
+- The restaurant has been manually reviewed and marked `approved`
+- The restaurant has been explicitly published
+
+The same principle should apply to menu items:
+
+- A menu item should only appear publicly when it belongs to a published restaurant
+- The menu item itself should also be explicitly published after review
 
 ## Future Expansion Path
 

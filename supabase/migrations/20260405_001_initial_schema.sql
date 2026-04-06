@@ -80,6 +80,20 @@ create table if not exists public.menu_items (
   updated_at timestamptz not null default now()
 );
 
+create view public.published_restaurants as
+select *
+from public.restaurants
+where review_status = 'approved'
+  and is_published = true;
+
+create view public.published_menu_items as
+select mi.*
+from public.menu_items mi
+join public.restaurants r on r.id = mi.restaurant_id
+where mi.is_published = true
+  and r.review_status = 'approved'
+  and r.is_published = true;
+
 create table if not exists public.verification_sources (
   id uuid primary key default gen_random_uuid(),
   restaurant_id uuid references public.restaurants(id) on delete cascade,
