@@ -46,10 +46,13 @@ Important fields include:
 
 - `gluten_status`
 - `confidence_level`
+- `verification_method`
 - `caution_notes`
 - `is_published`
 
-Menu items should only appear publicly when they are approved for a published restaurant workflow.
+Menu items should only appear publicly when they are published for an approved restaurant workflow.
+
+For the MVP, `verification_method` should help us distinguish between items verified by restaurant labeling and items independently reviewed by us.
 
 ### `verification_sources`
 
@@ -84,6 +87,7 @@ At minimum:
 - Restaurants must be `approved` and `is_published = true`
 - Menu items must be `is_published = true`
 - Menu items should only be shown for published restaurants
+- Menu items can still be surfaced as verified when the restaurant itself labels them gluten-free
 
 ## Current Migration File
 

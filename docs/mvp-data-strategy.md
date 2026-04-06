@@ -39,6 +39,14 @@ For each restaurant, we should aim to capture:
 - Caution notes for cross-contact or ambiguity
 - Review status and last-reviewed date
 
+For menu items, we should also capture how the item earned its gluten-free status.
+
+For example:
+
+- Restaurant labeled it gluten-free
+- We reviewed it internally
+- The evidence is still uncertain
+
 ## Product Tradeoff
 
 Users may see fewer restaurants at first, but the results should feel much more dependable.
@@ -48,7 +56,7 @@ That tradeoff supports the brand promise of trust and safety.
 ## Operational Model For The First Launch
 
 - Seed the database with a starter Tuscaloosa list
-- Review menu items manually before publishing them
+- Publish menu items with a clear evidence basis
 - Use a clear publish flag so only approved data is shown in the app
 - Track when each restaurant and menu item was last reviewed
 
@@ -62,7 +70,8 @@ The public app should only show restaurants when both of these are true:
 The same principle should apply to menu items:
 
 - A menu item should only appear publicly when it belongs to a published restaurant
-- The menu item itself should also be explicitly published after review
+- The menu item itself should also be explicitly published
+- A menu item may be marked verified based on restaurant-provided gluten-free labeling, even without independent internal item review
 
 ## Future Expansion Path
 

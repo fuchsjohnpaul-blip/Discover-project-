@@ -72,6 +72,9 @@ create table if not exists public.menu_items (
   confidence_level text not null check (
     confidence_level in ('high', 'medium', 'low')
   ),
+  verification_method text not null default 'restaurant_labeled' check (
+    verification_method in ('restaurant_labeled', 'internally_reviewed', 'mixed_evidence', 'unknown')
+  ),
   caution_notes text,
   is_featured boolean not null default false,
   is_published boolean not null default false,

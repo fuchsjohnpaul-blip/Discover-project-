@@ -101,6 +101,10 @@ In the first version, "verified" should mean we have structured evidence from on
 - Internal review logic or classification rules
 - Human review or admin approval for higher-confidence results
 
+For the MVP, a menu item can count as verified when the restaurant itself labels it gluten-free, even if we have not independently reviewed that specific item.
+
+We should still be transparent about the basis for that verification.
+
 ## Product Principles
 
 - Safety-first: avoid overstating confidence
@@ -135,7 +139,8 @@ That means:
 - Basic verification/confidence labeling
 - Admin-managed or seeded restaurant/menu dataset for the earliest release
 - A small hand-picked list of trusted Tuscaloosa restaurants curated carefully before launch
-- Only restaurants and menu items that have been manually reviewed and approved should appear in the app
+- Only restaurants that have been manually reviewed and approved should appear in the app
+- Menu items may appear as verified based on restaurant-provided gluten-free labeling, even without independent item-by-item review
 
 ### Out of Scope for the Earliest Version
 
@@ -206,6 +211,7 @@ Examples of safer wording:
 
 - `Verified from menu data`
 - `Restaurant labels this item as gluten-free`
+- `Verified based on restaurant labeling`
 - `Requires extra caution`
 - `Not enough evidence yet`
 
