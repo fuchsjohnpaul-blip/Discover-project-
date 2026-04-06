@@ -154,7 +154,7 @@ That means:
 
 ### Backend and Database
 
-- Supabase for database, authentication, and storage needs
+- Supabase for database and storage needs now, with room for authentication later if needed
 
 ### Deployment
 
@@ -227,7 +227,7 @@ Examples of safer wording:
 
 ### Phase 3: Expansion
 
-- Add user accounts and saved places
+- Add user accounts and saved places if later needed
 - Add more dietary restrictions
 - Add admin review workflows
 - Improve source ingestion and confidence scoring
@@ -239,7 +239,7 @@ These are high-level questions I can help you answer as we shape the product:
 1. Should the first launch focus on one city/region or be more general?
 2. Do you want the app to feel more like a discovery tool, a safety tool, or both?
 3. How strict should the first version be about what counts as "verified"?
-4. Should users log in during the MVP, or should we keep it open and simple at first?
+4. Should we add accounts later, or keep the product entirely public for a long time?
 5. Which mapping provider do you prefer once we compare tradeoffs?
 
 ## Immediate Next Step

@@ -19,6 +19,12 @@ The app foundation is set up around:
 - A starter Supabase browser client
 - Environment variable template
 
+## Product Access Model
+
+The MVP will support public browsing with no sign-in required.
+
+For now, the experience should stay simple and fully accessible without accounts.
+
 ## What Is Still Needed Before Running Locally
 
 This machine currently does not have `node` or `npm` installed, so dependencies have not yet been installed.
@@ -39,6 +45,6 @@ npm run dev
 
 1. Install dependencies and verify the app runs
 2. Add real shadcn/ui components through the CLI or manually as needed
-3. Define the Supabase schema for restaurants, menus, and verification records
+3. Seed the Supabase schema with trusted Tuscaloosa restaurant data
 4. Integrate a mapping provider
 5. Replace placeholder homepage data with real Tuscaloosa seed data
