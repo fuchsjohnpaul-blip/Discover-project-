@@ -24,6 +24,7 @@ export default function HomePage() {
     sampleRestaurants.find(
       (restaurant) => restaurant.slug === selectedRestaurantSlug
     ) ?? sampleRestaurants[0];
+  const featuredItem = selectedRestaurant.menuItems[0];
 
   const latitudePosition = `${12 + ((selectedRestaurant?.latitude ?? 33.2098) - 33.18) * 42}%`;
   const longitudePosition = `${20 + (((selectedRestaurant?.longitude ?? -87.56) + 87.59) * 70)}%`;
@@ -96,7 +97,7 @@ export default function HomePage() {
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                          {restaurant.verificationMethod}
+                          {restaurant.menuItems[0]?.verificationMethod}
                         </p>
                         <h3 className="mt-2 text-xl font-semibold">
                           {restaurant.name}
@@ -111,12 +112,12 @@ export default function HomePage() {
                     </div>
                     <p className="mt-4 max-w-xl text-sm leading-6 text-muted-foreground">
                       <span className="font-semibold text-foreground">
-                        {restaurant.itemName}
+                        {restaurant.menuItems[0]?.name}
                       </span>{" "}
-                      -> {restaurant.itemStatus}
+                      -> {restaurant.menuItems[0]?.status}
                     </p>
                     <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
-                      {restaurant.rationale}
+                      {restaurant.detailSummary}
                     </p>
                   </button>
                 ))}
@@ -179,7 +180,7 @@ export default function HomePage() {
                   >
                     <p className="text-sm font-semibold">{selectedRestaurant.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {selectedRestaurant.itemName}
+                      {featuredItem?.name}
                     </p>
                   </div>
                   <div className="absolute inset-x-4 bottom-4 rounded-2xl bg-white/92 p-4 shadow-lg backdrop-blur">
@@ -206,8 +207,8 @@ export default function HomePage() {
               </h2>
               <p className="text-sm leading-7 text-muted-foreground">
                 This preview shows the structure we can use when someone taps a
-                restaurant: verified item first, confidence nearby, and caution
-                information in a quieter supporting area.
+                restaurant: a short menu list first, confidence nearby, and
+                caution information in a quieter supporting area.
               </p>
             </div>
           </div>
@@ -233,40 +234,74 @@ export default function HomePage() {
               </span>
             </div>
 
+            <p className="mt-4 text-sm leading-6 text-muted-foreground">
+              {selectedRestaurant?.detailSummary}
+            </p>
+
             <div className="mt-6 rounded-[1.5rem] border bg-background/80 p-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                    Verified gluten-free item
+                    Menu items to review first
                   </p>
                   <h4 className="mt-2 text-2xl font-semibold">
-                    {selectedRestaurant?.itemName}
+                    {selectedRestaurant?.menuItems.length} highlighted choices
                   </h4>
                 </div>
                 <span className="inline-flex rounded-full bg-primary px-3 py-1 text-sm font-medium text-primary-foreground">
-                  {selectedRestaurant?.itemStatus}
+                  {selectedRestaurant?.glutenSafetyCategory}
                 </span>
               </div>
 
-              <p className="mt-4 text-sm leading-6 text-muted-foreground">
-                {selectedRestaurant?.rationale}
-              </p>
+              <div className="mt-5 grid gap-4">
+                {selectedRestaurant?.menuItems.map((item) => (
+                  <article
+                    key={item.name}
+                    className="rounded-[1.25rem] border bg-white/80 p-4"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <h5 className="text-lg font-semibold">{item.name}</h5>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {item.verificationMethod}
+                        </p>
+                      </div>
+                      <span
+                        className={cn(
+                          "inline-flex rounded-full px-3 py-1 text-sm font-medium",
+                          item.status === "Verified Safe"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-secondary text-secondary-foreground"
+                        )}
+                      >
+                        {item.status}
+                      </span>
+                    </div>
+                    <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                      {item.rationale}
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-foreground">
+                      {item.confidenceNote}
+                    </p>
+                  </article>
+                ))}
+              </div>
 
               <div className="mt-5 grid gap-4 md:grid-cols-2">
                 <div className="rounded-[1.25rem] border bg-white/80 p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                    Confidence
+                    Top pick
                   </p>
                   <p className="mt-2 text-sm leading-6 text-foreground">
-                    {selectedRestaurant?.confidenceNote}
+                    {featuredItem?.name}
                   </p>
                 </div>
                 <div className="rounded-[1.25rem] border bg-white/80 p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                    Verification basis
+                    Strongest current basis
                   </p>
                   <p className="mt-2 text-sm leading-6 text-foreground">
-                    {selectedRestaurant?.verificationMethod}
+                    {featuredItem?.verificationMethod}
                   </p>
                 </div>
               </div>
