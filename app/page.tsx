@@ -12,19 +12,48 @@ const filters = [
   "100% Gluten-Free",
   "Dedicated GF Menu",
   "Verified Menu Items",
+  "Contains Gluten",
   "Nearby Now"
-];
+] as const;
+
+type FilterOption = (typeof filters)[number];
 
 export default function HomePage() {
+  const [activeFilter, setActiveFilter] = useState<FilterOption>("Verified Menu Items");
   const [selectedRestaurantSlug, setSelectedRestaurantSlug] = useState(
     sampleRestaurants[0]?.slug ?? ""
   );
 
+  const filteredRestaurants = sampleRestaurants.filter((restaurant) => {
+    if (activeFilter === "Verified Menu Items") {
+      return restaurant.menuItems.some((item) => item.status === "Verified Safe");
+    }
+
+    if (activeFilter === "Contains Gluten") {
+      return restaurant.menuItems.some(
+        (item) => item.status === "Not Verified (Contains Gluten)"
+      );
+    }
+
+    if (activeFilter === "Dedicated GF Menu") {
+      return (
+        restaurant.menuItems.filter((item) => item.status === "Verified Safe").length >=
+        2
+      );
+    }
+
+    if (activeFilter === "100% Gluten-Free") {
+      return restaurant.menuItems.every((item) => item.status === "Verified Safe");
+    }
+
+    return true;
+  });
+
   const selectedRestaurant =
-    sampleRestaurants.find(
+    filteredRestaurants.find(
       (restaurant) => restaurant.slug === selectedRestaurantSlug
-    ) ?? sampleRestaurants[0];
-  const featuredItem = selectedRestaurant.menuItems[0];
+    ) ?? filteredRestaurants[0];
+  const featuredItem = selectedRestaurant?.menuItems[0];
 
   const latitudePosition = `${12 + ((selectedRestaurant?.latitude ?? 33.2098) - 33.18) * 42}%`;
   const longitudePosition = `${20 + (((selectedRestaurant?.longitude ?? -87.56) + 87.59) * 70)}%`;
@@ -59,8 +88,12 @@ export default function HomePage() {
             {filters.map((filter) => (
               <button
                 key={filter}
+                type="button"
+                onClick={() => setActiveFilter(filter)}
                 className={cn(
-                  "rounded-full border bg-background px-4 py-2 text-sm font-medium shadow-sm transition hover:border-primary hover:text-primary"
+                  "rounded-full border bg-background px-4 py-2 text-sm font-medium shadow-sm transition hover:border-primary hover:text-primary",
+                  activeFilter === filter &&
+                    "border-primary bg-primary text-primary-foreground hover:text-primary-foreground"
                 )}
               >
                 {filter}
@@ -78,19 +111,23 @@ export default function HomePage() {
                   <h2 className="mt-2 text-2xl font-semibold">
                     Start with a curated Tuscaloosa shortlist
                   </h2>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Showing {filteredRestaurants.length} restaurants for{" "}
+                    {activeFilter}.
+                  </p>
                 </div>
                 <Button variant="secondary">Browse all approved spots</Button>
               </div>
 
               <div className="grid gap-4">
-                {sampleRestaurants.map((restaurant) => (
+                {filteredRestaurants.map((restaurant) => (
                   <button
                     key={restaurant.slug}
                     type="button"
                     onClick={() => setSelectedRestaurantSlug(restaurant.slug)}
                     className={cn(
                       "rounded-[1.75rem] border bg-white/85 p-5 text-left shadow-[0_20px_40px_rgba(68,60,42,0.08)] transition hover:-translate-y-0.5",
-                      selectedRestaurant.slug === restaurant.slug &&
+                      selectedRestaurant?.slug === restaurant.slug &&
                         "border-primary ring-2 ring-primary/20"
                     )}
                   >
@@ -156,10 +193,10 @@ export default function HomePage() {
 
                 <div className="relative mt-4 flex-1 overflow-hidden rounded-[1.25rem] border bg-[#efe5cc]">
                   <div className="absolute inset-0 opacity-70 [background-image:linear-gradient(rgba(120,110,84,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(120,110,84,0.12)_1px,transparent_1px)] [background-size:42px_42px]" />
-                  {sampleRestaurants.map((restaurant) => {
+                  {filteredRestaurants.map((restaurant) => {
                     const top = `${12 + (restaurant.latitude - 33.18) * 42}%`;
                     const left = `${20 + ((restaurant.longitude + 87.59) * 70)}%`;
-                    const isSelected = restaurant.slug === selectedRestaurant.slug;
+                    const isSelected = restaurant.slug === selectedRestaurant?.slug;
 
                     return (
                       <div
@@ -174,15 +211,17 @@ export default function HomePage() {
                       />
                     );
                   })}
-                  <div
-                    className="absolute -translate-x-1/2 -translate-y-full rounded-2xl border bg-white/95 px-3 py-2 shadow-lg backdrop-blur"
-                    style={{ top: latitudePosition, left: longitudePosition }}
-                  >
-                    <p className="text-sm font-semibold">{selectedRestaurant.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {featuredItem?.name}
-                    </p>
-                  </div>
+                  {selectedRestaurant ? (
+                    <div
+                      className="absolute -translate-x-1/2 -translate-y-full rounded-2xl border bg-white/95 px-3 py-2 shadow-lg backdrop-blur"
+                      style={{ top: latitudePosition, left: longitudePosition }}
+                    >
+                      <p className="text-sm font-semibold">{selectedRestaurant.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {featuredItem?.name}
+                      </p>
+                    </div>
+                  ) : null}
                   <div className="absolute inset-x-4 bottom-4 rounded-2xl bg-white/92 p-4 shadow-lg backdrop-blur">
                     <p className="text-sm font-semibold">Map as a discovery companion</p>
                     <p className="mt-1 text-sm text-muted-foreground">
@@ -190,6 +229,15 @@ export default function HomePage() {
                       the map and detail panel point to the same place.
                     </p>
                   </div>
+
+                  {filteredRestaurants.length === 0 ? (
+                    <div className="absolute inset-6 flex items-center justify-center rounded-[1.25rem] border border-dashed bg-white/80 p-6 text-center">
+                      <p className="max-w-sm text-sm leading-6 text-muted-foreground">
+                        No restaurants match this filter yet. We can broaden the
+                        sample dataset or adjust the filter logic next.
+                      </p>
+                    </div>
+                  ) : null}
                 </div>
               </div>
             </section>
@@ -214,107 +262,121 @@ export default function HomePage() {
           </div>
 
           <article className="rounded-[2rem] border bg-white/85 p-6 shadow-[0_24px_64px_rgba(68,60,42,0.1)] backdrop-blur">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                  Live sample preview
-                </p>
-                <h3 className="mt-2 text-3xl font-semibold">
-                  {selectedRestaurant?.name}
-                </h3>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {selectedRestaurant?.address}
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {selectedRestaurant?.neighborhood}
-                </p>
-              </div>
-              <span className="inline-flex rounded-full bg-secondary px-3 py-1 text-sm font-medium text-secondary-foreground">
-                {selectedRestaurant?.glutenSafetyCategory}
-              </span>
-            </div>
-
-            <p className="mt-4 text-sm leading-6 text-muted-foreground">
-              {selectedRestaurant?.detailSummary}
-            </p>
-
-            <div className="mt-6 rounded-[1.5rem] border bg-background/80 p-5">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                    Menu items to review first
-                  </p>
-                  <h4 className="mt-2 text-2xl font-semibold">
-                    {selectedRestaurant?.menuItems.length} highlighted choices
-                  </h4>
+            {selectedRestaurant ? (
+              <>
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                      Live sample preview
+                    </p>
+                    <h3 className="mt-2 text-3xl font-semibold">
+                      {selectedRestaurant.name}
+                    </h3>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      {selectedRestaurant.address}
+                    </p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {selectedRestaurant.neighborhood}
+                    </p>
+                  </div>
+                  <span className="inline-flex rounded-full bg-secondary px-3 py-1 text-sm font-medium text-secondary-foreground">
+                    {selectedRestaurant.glutenSafetyCategory}
+                  </span>
                 </div>
-                <span className="inline-flex rounded-full bg-primary px-3 py-1 text-sm font-medium text-primary-foreground">
-                  {selectedRestaurant?.glutenSafetyCategory}
-                </span>
-              </div>
 
-              <div className="mt-5 grid gap-4">
-                {selectedRestaurant?.menuItems.map((item) => (
-                  <article
-                    key={item.name}
-                    className="rounded-[1.25rem] border bg-white/80 p-4"
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <h5 className="text-lg font-semibold">{item.name}</h5>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          {item.verificationMethod}
-                        </p>
-                      </div>
-                      <span
-                        className={cn(
-                          "inline-flex rounded-full px-3 py-1 text-sm font-medium",
-                          item.status === "Verified Safe"
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-secondary text-secondary-foreground"
-                        )}
-                      >
-                        {item.status}
-                      </span>
+                <p className="mt-4 text-sm leading-6 text-muted-foreground">
+                  {selectedRestaurant.detailSummary}
+                </p>
+
+                <div className="mt-6 rounded-[1.5rem] border bg-background/80 p-5">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                        Menu items to review first
+                      </p>
+                      <h4 className="mt-2 text-2xl font-semibold">
+                        {selectedRestaurant.menuItems.length} highlighted choices
+                      </h4>
                     </div>
-                    <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                      {item.rationale}
-                    </p>
-                    <p className="mt-2 text-sm leading-6 text-foreground">
-                      {item.confidenceNote}
-                    </p>
-                  </article>
-                ))}
-              </div>
+                    <span className="inline-flex rounded-full bg-primary px-3 py-1 text-sm font-medium text-primary-foreground">
+                      {selectedRestaurant.glutenSafetyCategory}
+                    </span>
+                  </div>
 
-              <div className="mt-5 grid gap-4 md:grid-cols-2">
-                <div className="rounded-[1.25rem] border bg-white/80 p-4">
+                  <div className="mt-5 grid gap-4">
+                    {selectedRestaurant.menuItems.map((item) => (
+                      <article
+                        key={item.name}
+                        className="rounded-[1.25rem] border bg-white/80 p-4"
+                      >
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <h5 className="text-lg font-semibold">{item.name}</h5>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                              {item.verificationMethod}
+                            </p>
+                          </div>
+                          <span
+                            className={cn(
+                              "inline-flex rounded-full px-3 py-1 text-sm font-medium",
+                              item.status === "Verified Safe"
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-secondary text-secondary-foreground"
+                            )}
+                          >
+                            {item.status}
+                          </span>
+                        </div>
+                        <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                          {item.rationale}
+                        </p>
+                        <p className="mt-2 text-sm leading-6 text-foreground">
+                          {item.confidenceNote}
+                        </p>
+                      </article>
+                    ))}
+                  </div>
+
+                  <div className="mt-5 grid gap-4 md:grid-cols-2">
+                    <div className="rounded-[1.25rem] border bg-white/80 p-4">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                        Top pick
+                      </p>
+                      <p className="mt-2 text-sm leading-6 text-foreground">
+                        {featuredItem?.name}
+                      </p>
+                    </div>
+                    <div className="rounded-[1.25rem] border bg-white/80 p-4">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                        Strongest current basis
+                      </p>
+                      <p className="mt-2 text-sm leading-6 text-foreground">
+                        {featuredItem?.verificationMethod}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-5 rounded-[1.5rem] border border-dashed bg-white/70 p-5">
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                    Top pick
+                    Supporting caution section
                   </p>
-                  <p className="mt-2 text-sm leading-6 text-foreground">
-                    {featuredItem?.name}
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    {selectedRestaurant.cautionSummary}
                   </p>
                 </div>
-                <div className="rounded-[1.25rem] border bg-white/80 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                    Strongest current basis
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-foreground">
-                    {featuredItem?.verificationMethod}
+              </>
+            ) : (
+              <div className="flex min-h-[420px] items-center justify-center rounded-[1.5rem] border border-dashed bg-background/70 p-6 text-center">
+                <div>
+                  <p className="text-sm font-semibold">No matching restaurant selected</p>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    This filter currently hides every sample restaurant, so the
+                    detail panel is waiting for a broader selection.
                   </p>
                 </div>
               </div>
-            </div>
-
-            <div className="mt-5 rounded-[1.5rem] border border-dashed bg-white/70 p-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                Supporting caution section
-              </p>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                {selectedRestaurant?.cautionSummary}
-              </p>
-            </div>
+            )}
           </article>
         </section>
       </div>
