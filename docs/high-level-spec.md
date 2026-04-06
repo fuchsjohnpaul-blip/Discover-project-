@@ -169,7 +169,7 @@ That means:
 
 ### Mapping
 
-We will likely use a modern web mapping provider such as Mapbox or Google Maps, but we should choose this deliberately because pricing, developer experience, and styling flexibility differ.
+The MVP will use `Google Maps` as the mapping provider because it feels familiar to many users and fits the product goal of easy restaurant discovery.
 
 ## Recommended Early Data Model
 
@@ -222,7 +222,7 @@ Examples of safer wording:
 - Create product spec
 - Set up Next.js app with TypeScript and shadcn/ui
 - Set up Supabase project and schema
-- Choose mapping provider
+- Prepare Google Maps integration
 - Build basic map and restaurant detail experience
 
 ### Phase 2: Verified Dining MVP
@@ -248,7 +248,7 @@ These are high-level questions I can help you answer as we shape the product:
 2. Do you want the app to feel more like a discovery tool, a safety tool, or both?
 3. How strict should the first version be about what counts as "verified"?
 4. Should we add accounts later, or keep the product entirely public for a long time?
-5. Which mapping provider do you prefer once we compare tradeoffs?
+5. How prominent should map interactions be compared with the featured restaurant list?
 
 ## Immediate Next Step
 

@@ -8,6 +8,7 @@ The app foundation is set up around:
 - TypeScript
 - Tailwind CSS with shadcn/ui conventions
 - Supabase client wiring
+- Planned Google Maps integration
 - A launch-city-first homepage focused on Tuscaloosa, Alabama
 
 ## What Is Ready
@@ -46,5 +47,5 @@ npm run dev
 1. Install dependencies and verify the app runs
 2. Add real shadcn/ui components through the CLI or manually as needed
 3. Seed the Supabase schema with trusted Tuscaloosa restaurant data
-4. Integrate a mapping provider
+4. Integrate Google Maps
 5. Replace placeholder homepage data with real Tuscaloosa seed data
