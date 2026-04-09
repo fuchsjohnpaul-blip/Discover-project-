@@ -57,6 +57,9 @@ Users should be able to:
 - See restaurants near their current location
 - Pan and zoom the map
 - Tap a restaurant marker to open a detail view
+- Submit a natural-language local search and watch the map fit to all returned markers
+- Hover or tap a result card and highlight the matching map marker
+- Tap a map marker and jump the matching result card into view
 
 ### 2. Search and Filters
 
@@ -76,6 +79,8 @@ The app should parse that request into useful product signals such as:
 - Location intent such as `near me`
 
 Instead of replying with a paragraph, the assistant should trigger a dynamic result tray made of scrollable meal cards.
+
+The live tray and the live map should always be populated from the same synchronized result array so there is no discrepancy between the visible list and the visible pins.
 
 Early filters may include:
 
@@ -117,6 +122,13 @@ Each card should aim to show:
 - Verification icons such as `Kitchen Certified`, `User Vetted`, or `Laboratory Tested`
 - Safety rating or confidence indicators
 - Estimated prep speed when available
+
+For the Google Maps-style live search experience, the result system should also:
+
+- Clear old markers before every new search
+- Prefer businesses currently open when `Open Now` is enabled
+- Show a clear `No results found in this area` state instead of leaving the map blank
+- Stack cleanly on smaller screens while staying side-by-side on larger screens
 
 Broad searches should be able to reorganize the tray by useful sub-categories such as:
 

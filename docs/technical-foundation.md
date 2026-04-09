@@ -9,6 +9,7 @@ The app foundation is set up around:
 - Tailwind CSS with shadcn/ui conventions
 - Supabase client wiring
 - Planned Google Maps integration
+- Google Maps Places integration for live local search
 - A launch-city-first homepage focused on Tuscaloosa, Alabama
 
 ## What Is Ready
@@ -21,6 +22,7 @@ The app foundation is set up around:
 - Environment variable template
 - A Google Maps-ready shell component that can load markers once an API key is configured
 - A homepage data loader that can read from Supabase and fall back to sample data when live configuration is not ready
+- A live search explorer that can query Google Places, sync map markers with result cards, and bias searches to the user's location
 
 ## Product Access Model
 
@@ -49,6 +51,11 @@ To enable the real map shell, the app will also need:
 ```bash
 NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_key_here
 ```
+
+That Google Maps key should have both:
+
+- Maps JavaScript API
+- Places API / Places Library enabled
 
 For a fuller step-by-step guide, see:
 

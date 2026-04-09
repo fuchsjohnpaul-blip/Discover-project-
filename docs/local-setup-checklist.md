@@ -12,8 +12,6 @@ It is written in a practical order so the setup is easier to follow.
 
 ## 1. Install Node.js
 
-This environment currently does not have `node` or `npm`, so the project cannot install dependencies or run yet.
-
 You will need a current Node.js version installed first.
 
 Recommended target:
@@ -72,7 +70,7 @@ The current codebase already includes:
 
 ## 5. Enable Google Maps
 
-The codebase now includes a Google Maps-ready shell component.
+The codebase now includes a live Google Maps + Places search experience.
 
 For the live map to work, the Google Maps JavaScript API key must be active and placed in:
 
@@ -81,6 +79,11 @@ NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
 ```
 
 Without that key, the app will show a graceful fallback state instead of the live map.
+
+The Google Maps project should have both of these enabled:
+
+- Maps JavaScript API
+- Places API / Places Library
 
 ## 6. Start Local Development
 
@@ -101,16 +104,17 @@ After setup is complete, the first things to verify are:
 - The restaurant detail panel updates when a card is selected
 - Filters change the visible restaurant list
 - The Google Maps shell loads if the API key is valid
+- The live search list and the map markers stay synchronized from one search response
 
 ## 8. Known Current Limits
 
-Right now, the project is still using shared sample data in the UI layer.
+Right now, the project uses a mix of live Google Places search and curated sample meal data.
 
 That means:
 
-- The homepage is not yet reading from Supabase live
-- The map shell is ready, but not verified in this environment
-- This machine still needs Node.js before local execution is possible
+- Google Places can power the live list and map when the API key is configured
+- Curated meal verification still comes from the app dataset, not directly from Google Places
+- Supabase reads are available with a fallback path when live configuration is missing
 
 ## 9. Recommended Next Technical Step
 

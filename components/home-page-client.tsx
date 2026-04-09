@@ -1,42 +1,28 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
-  ArrowUpRight,
   Clock3,
   FlaskConical,
   MapPin,
-  MessageSquareText,
-  Search,
   ShieldCheck,
-  Sparkles,
   Star,
   Users,
   UtensilsCrossed
 } from "lucide-react";
 
-import { GoogleMapShell } from "@/components/google-map-shell";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { SearchMapExplorer } from "@/components/search-map-explorer";
+import { buttonVariants } from "@/components/ui/button";
 import {
-  DEFAULT_ASSISTANT_QUERY,
-  assistantResultViews,
-  assistantSuggestions,
   buildMealFeedEntries,
   feedFilters,
-  getAssistantSections,
   getDirectionsLinks,
   matchesFeedFilter,
-  runAssistantQuery,
-  type AssistantResultView,
   type FeedFilter,
   type MealFeedEntry
 } from "@/lib/meal-query";
-import {
-  type SampleRestaurant,
-  type SafetyLevel,
-  type VerificationBadge
-} from "@/lib/sample-data";
+import { type SampleRestaurant, type VerificationBadge } from "@/lib/sample-data";
 import { cn } from "@/lib/utils";
 
 const FEED_BATCH_SIZE = 4;
@@ -52,38 +38,22 @@ export function HomePageClient({
 }: HomePageClientProps) {
   const allFeedEntries = buildMealFeedEntries(initialRestaurants);
   const [activeFilter, setActiveFilter] = useState<FeedFilter>("Safe To Start");
-  const [resultView, setResultView] =
-    useState<AssistantResultView>("Top Rated");
-  const [draftQuery, setDraftQuery] = useState(DEFAULT_ASSISTANT_QUERY);
-  const [submittedQuery, setSubmittedQuery] = useState(DEFAULT_ASSISTANT_QUERY);
   const [selectedEntryId, setSelectedEntryId] = useState(
     allFeedEntries[0]?.id ?? ""
   );
   const [visibleCount, setVisibleCount] = useState(FEED_BATCH_SIZE);
-  const [isPending, startTransition] = useTransition();
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   const filteredFeedEntries = allFeedEntries.filter((entry) =>
     matchesFeedFilter(entry, activeFilter)
   );
   const visibleFeedEntries = filteredFeedEntries.slice(0, visibleCount);
-  const assistantResult = runAssistantQuery(submittedQuery, allFeedEntries);
-  const assistantSections = getAssistantSections(
-    assistantResult.entries,
-    resultView
-  );
   const selectedEntry =
-    allFeedEntries.find((entry) => entry.id === selectedEntryId) ??
-    assistantResult.entries[0] ??
-    filteredFeedEntries[0];
+    filteredFeedEntries.find((entry) => entry.id === selectedEntryId) ??
+    filteredFeedEntries[0] ??
+    allFeedEntries[0];
   const selectedRestaurant = initialRestaurants.find(
     (restaurant) => restaurant.slug === selectedEntry?.restaurantSlug
-  );
-  const mapRestaurants = getRestaurantsForMap(
-    assistantResult.entries.length > 0
-      ? assistantResult.entries
-      : filteredFeedEntries,
-    initialRestaurants
   );
   const safeFeedCount = filteredFeedEntries.filter(
     (entry) => entry.menuItem.status === "Verified Safe"
@@ -94,17 +64,10 @@ export function HomePageClient({
   }, [activeFilter, initialRestaurants.length]);
 
   useEffect(() => {
-    const preferredEntries =
-      assistantResult.entries.length > 0
-        ? assistantResult.entries
-        : filteredFeedEntries.length > 0
-          ? filteredFeedEntries
-          : allFeedEntries;
-
-    if (!preferredEntries.some((entry) => entry.id === selectedEntryId)) {
-      setSelectedEntryId(preferredEntries[0]?.id ?? "");
+    if (!filteredFeedEntries.some((entry) => entry.id === selectedEntryId)) {
+      setSelectedEntryId(filteredFeedEntries[0]?.id ?? allFeedEntries[0]?.id ?? "");
     }
-  }, [allFeedEntries, assistantResult.entries, filteredFeedEntries, selectedEntryId]);
+  }, [allFeedEntries, filteredFeedEntries, selectedEntryId]);
 
   useEffect(() => {
     const node = loadMoreRef.current;
@@ -133,212 +96,66 @@ export function HomePageClient({
     return () => observer.disconnect();
   }, [filteredFeedEntries.length, visibleCount]);
 
-  function submitAssistantQuery(nextQuery: string) {
-    const normalizedQuery = nextQuery.trim() || DEFAULT_ASSISTANT_QUERY;
-
-    setDraftQuery(normalizedQuery);
-    startTransition(() => {
-      setSubmittedQuery(normalizedQuery);
-      setResultView("Top Rated");
-    });
-  }
-
   return (
     <main className="min-h-screen px-4 py-6 md:px-8 lg:px-10">
-      <div className="mx-auto grid max-w-7xl gap-6 xl:grid-cols-[minmax(0,1fr)_430px] xl:items-start">
-        <section className="space-y-5">
-          <header className="overflow-hidden rounded-[2rem] border bg-white/80 p-6 shadow-[0_30px_80px_rgba(68,60,42,0.12)] backdrop-blur">
-            <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-              <span className="rounded-full bg-secondary px-3 py-1 font-medium text-secondary-foreground">
-                Launch city: Tuscaloosa, Alabama
-              </span>
-              <span className="rounded-full border px-3 py-1">
-                Home feed: approved meals
-              </span>
-              <span className="rounded-full border px-3 py-1">
-                Data source: {dataSource}
-              </span>
+      <div className="mx-auto max-w-7xl space-y-6">
+        <header className="overflow-hidden rounded-[2rem] border bg-white/80 p-6 shadow-[0_30px_80px_rgba(68,60,42,0.12)] backdrop-blur">
+          <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+            <span className="rounded-full bg-secondary px-3 py-1 font-medium text-secondary-foreground">
+              Launch city: Tuscaloosa, Alabama
+            </span>
+            <span className="rounded-full border px-3 py-1">
+              Live list and map sync
+            </span>
+            <span className="rounded-full border px-3 py-1">
+              Data source: {dataSource}
+            </span>
+          </div>
+
+          <div className="mt-6 grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
+            <div className="max-w-3xl">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                Discovery + accuracy
+              </p>
+              <h1 className="mt-3 text-4xl font-semibold tracking-tight md:text-6xl">
+                Find a nearby meal and watch the map stay perfectly in sync.
+              </h1>
+              <p className="mt-4 text-lg leading-8 text-muted-foreground">
+                The home tab now pairs a Google Maps-style local search with the
+                curated feed below, so users can move from a natural-language
+                request into exact pins, live result cards, and trusted meal
+                context without friction.
+              </p>
             </div>
 
-            <div className="mt-6 grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
-              <div className="max-w-3xl">
-                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                  Search like a concierge
-                </p>
-                <h1 className="mt-3 text-4xl font-semibold tracking-tight md:text-6xl">
-                  Ask for a meal the way you would text a trusted friend.
-                </h1>
-                <p className="mt-4 text-lg leading-8 text-muted-foreground">
-                  The home experience now starts with a natural-language prompt,
-                  then turns that request into verified meal cards, quick map
-                  context, and a scrolling discovery feed beneath it.
-                </p>
-              </div>
-
-              <div className="rounded-[1.75rem] border bg-[linear-gradient(135deg,rgba(252,249,241,0.98)_0%,rgba(241,233,216,0.98)_100%)] p-5 shadow-sm">
-                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                  Feed rhythm
-                </p>
-                <div className="mt-4 grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
-                  <FeedStatCard
-                    icon={<MessageSquareText className="h-5 w-5" />}
-                    title={`${assistantResult.entries.length} query matches`}
-                    description="Meal cards currently surfaced from the chat-style assistant."
-                  />
-                  <FeedStatCard
-                    icon={<ShieldCheck className="h-5 w-5" />}
-                    title={`${safeFeedCount} safer starts`}
-                    description="Meals currently reading as the strongest gluten-free starting points."
-                  />
-                  <FeedStatCard
-                    icon={<MapPin className="h-5 w-5" />}
-                    title={`${mapRestaurants.length} map spots`}
-                    description="Restaurants staying in sync with the result tray and the feed."
-                  />
-                </div>
+            <div className="rounded-[1.75rem] border bg-[linear-gradient(135deg,rgba(252,249,241,0.98)_0%,rgba(241,233,216,0.98)_100%)] p-5 shadow-sm">
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Home snapshot
+              </p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+                <FeedStatCard
+                  icon={<MapPin className="h-5 w-5" />}
+                  title="One search stream"
+                  description="The map markers and live result list now come from the same normalized Google Places response."
+                />
+                <FeedStatCard
+                  icon={<ShieldCheck className="h-5 w-5" />}
+                  title={`${safeFeedCount} safer feed picks`}
+                  description="The curated feed still keeps verified-friendly meal options easy to browse underneath the live search layer."
+                />
+                <FeedStatCard
+                  icon={<UtensilsCrossed className="h-5 w-5" />}
+                  title={`${filteredFeedEntries.length} feed cards`}
+                  description="Approved meal cards continue to load as the user scrolls through the social-style home feed."
+                />
               </div>
             </div>
-          </header>
+          </div>
+        </header>
 
-          <section className="rounded-[2rem] border bg-white/90 p-5 shadow-[0_24px_64px_rgba(68,60,42,0.1)]">
-            <div className="grid gap-4">
-              <div className="rounded-[1.7rem] bg-[linear-gradient(135deg,rgba(240,247,242,1)_0%,rgba(224,239,231,1)_100%)] p-4">
-                <div className="flex items-center gap-3 text-sm font-semibold text-foreground">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
-                    <Search className="h-5 w-5" />
-                  </div>
-                  AI meal concierge
-                </div>
+        <SearchMapExplorer curatedRestaurants={initialRestaurants} />
 
-                <form
-                  className="mt-4 grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]"
-                  onSubmit={(event) => {
-                    event.preventDefault();
-                    submitAssistantQuery(draftQuery);
-                  }}
-                >
-                  <label className="sr-only" htmlFor="assistant-query">
-                    Search for meals
-                  </label>
-                  <input
-                    id="assistant-query"
-                    value={draftQuery}
-                    onChange={(event) => setDraftQuery(event.target.value)}
-                    placeholder={DEFAULT_ASSISTANT_QUERY}
-                    className="h-12 rounded-full border bg-white px-5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                  />
-                  <Button className="h-12 px-6" type="submit">
-                    {isPending ? "Searching..." : "Find meals"}
-                  </Button>
-                </form>
-
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {assistantSuggestions.map((suggestion) => (
-                    <button
-                      key={suggestion.label}
-                      type="button"
-                      onClick={() => submitAssistantQuery(suggestion.query)}
-                      className="rounded-full border bg-white px-4 py-2 text-sm font-medium text-muted-foreground transition hover:border-primary hover:text-primary"
-                    >
-                      {suggestion.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="grid gap-3">
-                <div className="flex justify-end">
-                  <div className="max-w-[85%] rounded-[1.7rem] rounded-br-md bg-primary px-5 py-4 text-primary-foreground shadow-sm">
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary-foreground/75">
-                      User query
-                    </p>
-                    <p className="mt-2 text-sm leading-7">{submittedQuery}</p>
-                  </div>
-                </div>
-
-                <div className="max-w-[94%] rounded-[1.8rem] rounded-bl-md border bg-[linear-gradient(180deg,rgba(255,255,255,0.96)_0%,rgba(247,242,233,0.96)_100%)] p-5 shadow-sm">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-secondary text-secondary-foreground">
-                      <Sparkles className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold">Assistant response</p>
-                      <p className="text-xs text-muted-foreground">
-                        Intent recognition + dynamic result tray
-                      </p>
-                    </div>
-                  </div>
-
-                  <p className="mt-4 text-sm leading-7 text-foreground">
-                    {assistantResult.summary}
-                  </p>
-
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <IntentChip
-                      label="Dietary tag"
-                      value={assistantResult.intent.dietaryTag ?? "Any diet"}
-                    />
-                    <IntentChip
-                      label="Keyword/Cuisine"
-                      value={assistantResult.intent.keyword ?? "Any cuisine"}
-                    />
-                    <IntentChip
-                      label="Constraint"
-                      value={assistantResult.intent.constraint ?? "No extra constraint"}
-                    />
-                    <IntentChip
-                      label="Location"
-                      value={assistantResult.intent.nearMe ? "Near me" : "Tuscaloosa"}
-                    />
-                  </div>
-
-                  <div className="mt-5 flex flex-wrap gap-2">
-                    {assistantResultViews.map((view) => (
-                      <button
-                        key={view}
-                        type="button"
-                        onClick={() => setResultView(view)}
-                        className={cn(
-                          "rounded-full border bg-white px-4 py-2 text-sm font-medium transition hover:border-primary hover:text-primary",
-                          resultView === view &&
-                            "border-primary bg-primary text-primary-foreground hover:text-primary-foreground"
-                        )}
-                      >
-                        {view}
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="mt-5 max-h-[38rem] space-y-4 overflow-y-auto pr-1">
-                    {assistantSections.map((section) => (
-                      <div key={section.title} className="space-y-3">
-                        <div>
-                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                            {section.title}
-                          </p>
-                          <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                            {section.description}
-                          </p>
-                        </div>
-
-                        <div className="grid gap-3">
-                          {section.entries.map((entry) => (
-                            <AssistantResultCard
-                              key={`${section.title}-${entry.id}`}
-                              entry={entry}
-                              isSelected={selectedEntry?.id === entry.id}
-                              onSelect={() => setSelectedEntryId(entry.id)}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_430px] xl:items-start">
           <section className="rounded-[2rem] border bg-white/90 p-5 shadow-[0_24px_64px_rgba(68,60,42,0.1)]">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
@@ -349,8 +166,8 @@ export function HomePageClient({
                   Keep scrolling through approved meal drops
                 </h2>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  This stays social and browseable, even after the assistant
-                  answers a search.
+                  This stays social and browseable after the live map search,
+                  giving the app a discovery rhythm instead of a static directory feel.
                 </p>
               </div>
               <span className="rounded-full border bg-background px-4 py-2 text-sm font-medium text-muted-foreground">
@@ -457,7 +274,7 @@ export function HomePageClient({
                             {entry.address}
                           </p>
                           <p className="mt-3 text-sm leading-6 text-foreground">
-                            {entry.safeItemCount} of {entry.menuItemCount} sample
+                            {entry.safeItemCount} of {entry.menuItemCount} curated
                             items currently read as safer starting points.
                           </p>
                         </div>
@@ -492,29 +309,8 @@ export function HomePageClient({
               </div>
             )}
           </section>
-        </section>
 
-        <aside className="space-y-5 xl:sticky xl:top-6">
-          <section className="overflow-hidden rounded-[2rem] border bg-white/85 p-4 shadow-[0_30px_80px_rgba(68,60,42,0.12)]">
-            <div className="flex items-center justify-between rounded-[1.5rem] bg-[linear-gradient(180deg,rgba(238,233,219,0.96)_0%,rgba(255,255,255,0.9)_100%)] px-4 py-3 shadow-sm">
-              <div>
-                <p className="text-sm font-medium">Map focus</p>
-                <p className="text-xs text-muted-foreground">
-                  Restaurants matching the assistant tray and selected meal
-                </p>
-              </div>
-              <span className="rounded-full border bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                {mapRestaurants.length} spots
-              </span>
-            </div>
-
-            <GoogleMapShell
-              restaurants={mapRestaurants}
-              selectedRestaurant={selectedRestaurant}
-            />
-          </section>
-
-          <article className="rounded-[2rem] border bg-white/85 p-6 shadow-[0_24px_64px_rgba(68,60,42,0.1)] backdrop-blur">
+          <article className="rounded-[2rem] border bg-white/85 p-6 shadow-[0_24px_64px_rgba(68,60,42,0.1)] backdrop-blur xl:sticky xl:top-6">
             {selectedRestaurant && selectedEntry ? (
               <>
                 <div className="flex flex-wrap items-start justify-between gap-4">
@@ -702,119 +498,17 @@ export function HomePageClient({
                     The feed is waiting for a selection
                   </p>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    Choose a result card or a feed card on the left and this
-                    panel will fill in with restaurant context and the rest of
-                    that menu preview.
+                    Choose a curated meal card on the left and this panel will
+                    fill in with restaurant context and the rest of that menu
+                    preview.
                   </p>
                 </div>
               </div>
             )}
           </article>
-        </aside>
+        </div>
       </div>
     </main>
-  );
-}
-
-function AssistantResultCard({
-  entry,
-  isSelected,
-  onSelect
-}: {
-  entry: MealFeedEntry;
-  isSelected: boolean;
-  onSelect: () => void;
-}) {
-  const directions = getDirectionsLinks(entry);
-
-  return (
-    <article
-      className={cn(
-        "rounded-[1.5rem] border bg-white/90 p-4 shadow-sm transition",
-        isSelected && "border-primary ring-2 ring-primary/20"
-      )}
-    >
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            {entry.restaurantName}
-          </p>
-          <h3 className="mt-2 text-xl font-semibold">{entry.menuItem.name}</h3>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {entry.menuItem.priceLabel} • {entry.distanceMiles.toFixed(1)} miles
-            away
-          </p>
-        </div>
-        <span
-          className={cn(
-            "inline-flex rounded-full px-3 py-1 text-sm font-medium",
-            entry.menuItem.status === "Verified Safe"
-              ? "bg-primary text-primary-foreground"
-              : "bg-secondary text-secondary-foreground"
-          )}
-        >
-          {entry.menuItem.safetyLevel}
-        </span>
-      </div>
-
-      <div className="mt-4 grid gap-2 sm:grid-cols-3">
-        <MetricCard
-          icon={<Star className="h-4 w-4" />}
-          label="Top rated"
-          value={entry.glutenSafetyRating.toFixed(1)}
-        />
-        <MetricCard
-          icon={<Clock3 className="h-4 w-4" />}
-          label="Speed"
-          value={`${entry.menuItem.prepTimeMinutes} min`}
-        />
-        <MetricCard
-          icon={<MapPin className="h-4 w-4" />}
-          label="Location"
-          value={entry.neighborhood}
-        />
-      </div>
-
-      <div className="mt-4 flex flex-wrap gap-2">
-        {entry.menuItem.verificationBadges.map((badge) => (
-          <VerificationPill key={badge} badge={badge} />
-        ))}
-      </div>
-
-      <p className="mt-4 text-sm leading-6 text-muted-foreground">
-        {entry.menuItem.confidenceNote}
-      </p>
-
-      <div className="mt-4 flex flex-wrap gap-2">
-        <Button size="sm" type="button" onClick={onSelect}>
-          Open meal
-        </Button>
-        <a
-          className={cn(
-            buttonVariants({ variant: "outline", size: "sm" }),
-            "gap-2 no-underline"
-          )}
-          href={directions.google}
-          rel="noreferrer"
-          target="_blank"
-        >
-          Google Maps
-          <ArrowUpRight className="h-4 w-4" />
-        </a>
-        <a
-          className={cn(
-            buttonVariants({ variant: "outline", size: "sm" }),
-            "gap-2 no-underline"
-          )}
-          href={directions.apple}
-          rel="noreferrer"
-          target="_blank"
-        >
-          Apple Maps
-          <ArrowUpRight className="h-4 w-4" />
-        </a>
-      </div>
-    </article>
   );
 }
 
@@ -837,15 +531,6 @@ function FeedStatCard({
         {description}
       </p>
     </article>
-  );
-}
-
-function IntentChip({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-full border bg-white px-4 py-2 text-sm">
-      <span className="font-semibold text-foreground">{label}:</span>{" "}
-      <span className="text-muted-foreground">{value}</span>
-    </div>
   );
 }
 
@@ -887,13 +572,4 @@ function VerificationPill({ badge }: { badge: VerificationBadge }) {
       {badge}
     </span>
   );
-}
-
-function getRestaurantsForMap(
-  entries: MealFeedEntry[],
-  restaurants: SampleRestaurant[]
-) {
-  const slugs = new Set(entries.map((entry) => entry.restaurantSlug));
-
-  return restaurants.filter((restaurant) => slugs.has(restaurant.slug));
 }
