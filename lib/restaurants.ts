@@ -122,8 +122,7 @@ function normalizeRestaurants({
     }
   });
 
-  return restaurantRows
-    .map((restaurant) => {
+  return restaurantRows.flatMap((restaurant) => {
       const menuItems = menuItemRows
         .filter((item) => item.restaurant_id === restaurant.id)
         .map((item) =>
@@ -134,37 +133,39 @@ function normalizeRestaurants({
         );
 
       if (menuItems.length === 0) {
-        return null;
+        return [];
       }
 
       const safeCount = menuItems.filter(
         (item) => item.status === "Verified Safe"
       ).length;
 
-      return {
-        slug: restaurant.slug,
-        name: restaurant.name,
-        address: formatAddress(restaurant),
-        neighborhood: deriveNeighborhood(restaurant.address_line1),
-        latitude: restaurant.latitude,
-        longitude: restaurant.longitude,
-        glutenSafetyCategory: humanizeSafetyCategory(
-          restaurant.gluten_safety_category
-        ),
-        menuItems,
-        cautionSummary:
-          menuItems.find((item) => item.status !== "Verified Safe")?.rationale ??
-          "Review preparation details with staff when menu wording changes.",
-        detailSummary:
-          safeCount > 0
-            ? `${restaurant.name} currently has ${safeCount} menu item${
-                safeCount === 1 ? "" : "s"
-              } that look strongest for a gluten-free-friendly first pass.`
-            : `${restaurant.name} currently reads as a more caution-heavy stop based on the published menu items.`,
-        dataSource: "supabase" as const
-      };
-    })
-    .filter((restaurant): restaurant is SampleRestaurant => restaurant !== null);
+      return [
+        {
+          slug: restaurant.slug,
+          name: restaurant.name,
+          address: formatAddress(restaurant),
+          neighborhood: deriveNeighborhood(restaurant.address_line1),
+          latitude: restaurant.latitude,
+          longitude: restaurant.longitude,
+          glutenSafetyCategory: humanizeSafetyCategory(
+            restaurant.gluten_safety_category
+          ),
+          menuItems,
+          cautionSummary:
+            menuItems.find((item) => item.status !== "Verified Safe")
+              ?.rationale ??
+            "Review preparation details with staff when menu wording changes.",
+          detailSummary:
+            safeCount > 0
+              ? `${restaurant.name} currently has ${safeCount} menu item${
+                  safeCount === 1 ? "" : "s"
+                } that look strongest for a gluten-free-friendly first pass.`
+              : `${restaurant.name} currently reads as a more caution-heavy stop based on the published menu items.`,
+          dataSource: "supabase" as const
+        }
+      ];
+    });
 }
 
 function normalizeMenuItem({

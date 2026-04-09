@@ -38,11 +38,11 @@ Benefits of this approach:
 
 ## First Version Goal
 
-Help a user open the app, see gluten-free-friendly restaurants in Tuscaloosa on a map, filter by dietary safety level, and tap into a restaurant to view verified gluten-free menu items and supporting details.
+Help a user open the app, scroll through gluten-free-friendly meal options in Tuscaloosa, filter by dietary safety level, and tap into a restaurant to view verified gluten-free menu items and supporting details.
 
 The experience should feel inviting and useful for exploring where to eat, not only for checking risk.
 
-The first screen should emphasize a curated list of featured restaurants, with the map visible alongside it as a supporting discovery tool.
+The main home tab should feel like an infinite-scroll-style feed of approved meal options, with the map and restaurant context visible as supporting discovery tools.
 
 ## Core User Experience
 
@@ -64,7 +64,7 @@ Users should be able to search by place or area and filter restaurants by dietar
 
 The filters should help users narrow choices quickly while still encouraging exploration.
 
-The featured restaurant list should be easy to scan before a user starts interacting deeply with the map.
+The home feed should be easy to scan and feel more like a social-style stream of meal options than a static restaurant directory.
 
 Early filters may include:
 
@@ -123,7 +123,7 @@ For the MVP, the app should be positioned as a dining discovery product first, w
 That means:
 
 - The map and browsing experience should feel welcoming and easy to explore
-- The homepage should lead with curated featured restaurants
+- The homepage should lead with a curated meal feed sourced from approved restaurants
 - Restaurants should still feel appealing, not clinical
 - Safety information should be clearly available without making the interface feel overly medical
 - Verification and caution notes remain essential, but they support discovery rather than dominate it

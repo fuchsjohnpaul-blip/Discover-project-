@@ -86,8 +86,10 @@ export function GoogleMapShell({
       return;
     }
 
+    const googleMaps = window.google.maps;
+
     if (!mapInstanceRef.current) {
-      mapInstanceRef.current = new window.google.maps.Map(mapRef.current, {
+      mapInstanceRef.current = new googleMaps.Map(mapRef.current, {
         center: { lat: 33.2098, lng: -87.5692 },
         zoom: 12,
         disableDefaultUI: false,
@@ -99,7 +101,7 @@ export function GoogleMapShell({
     }
 
     if (!infoWindowRef.current) {
-      infoWindowRef.current = new window.google.maps.InfoWindow();
+      infoWindowRef.current = new googleMaps.InfoWindow();
     }
 
     const map = mapInstanceRef.current;
@@ -108,16 +110,16 @@ export function GoogleMapShell({
     markersRef.current.forEach((marker) => marker.setMap(null));
     markersRef.current.clear();
 
-    const bounds = new window.google.maps.LatLngBounds();
+    const bounds = new googleMaps.LatLngBounds();
 
     restaurants.forEach((restaurant) => {
-      const marker = new window.google.maps.Marker({
+      const marker = new googleMaps.Marker({
         map,
         position: { lat: restaurant.latitude, lng: restaurant.longitude },
         title: restaurant.name,
         animation:
           selectedRestaurant?.slug === restaurant.slug
-            ? window.google.maps.Animation.DROP
+            ? googleMaps.Animation.DROP
             : undefined
       });
 
