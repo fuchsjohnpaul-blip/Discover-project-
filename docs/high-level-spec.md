@@ -66,12 +66,25 @@ The filters should help users narrow choices quickly while still encouraging exp
 
 The home feed should be easy to scan and feel more like a social-style stream of meal options than a static restaurant directory.
 
+The main search interaction should also support natural-language meal requests through a chat-style interface. For example, a user should be able to type a phrase like `Show me gluten-free pasta options near me with Celiac-safe certification` and see structured results instead of a text-only answer.
+
+The app should parse that request into useful product signals such as:
+
+- Dietary tag
+- Cuisine or dish keyword
+- Trust or certification constraint
+- Location intent such as `near me`
+
+Instead of replying with a paragraph, the assistant should trigger a dynamic result tray made of scrollable meal cards.
+
 Early filters may include:
 
 - `100% Gluten-Free`
 - `Dedicated Gluten-Free Menu`
 - `Gluten-Free Options Available`
 - `Verified Menu Items Only`
+- `Kitchen Certified`
+- `Use Extra Caution`
 
 ### 3. Restaurant Detail View
 
@@ -89,6 +102,27 @@ The detail view should lead with the verified gluten-free items first, then prov
 Important caution information should still be available, but it should live in a smaller supporting section so the overall experience stays clean and easy to browse.
 
 The detail view should balance practical safety information with the feeling of discovering a place worth visiting.
+
+### 3A. Dynamic Result Cards
+
+When the assistant returns matches, each meal card should feel useful at a glance.
+
+Each card should aim to show:
+
+- Dish name
+- Price
+- Restaurant name
+- Distance or location badge
+- A direct directions link to Google Maps or Apple Maps
+- Verification icons such as `Kitchen Certified`, `User Vetted`, or `Laboratory Tested`
+- Safety rating or confidence indicators
+- Estimated prep speed when available
+
+Broad searches should be able to reorganize the tray by useful sub-categories such as:
+
+- `Top Rated`
+- `Speed`
+- `Safety Level`
 
 ### 4. Verification Layer
 
