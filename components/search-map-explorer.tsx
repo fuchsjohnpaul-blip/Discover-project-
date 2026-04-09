@@ -21,8 +21,7 @@ import {
   DEFAULT_LIVE_SEARCH_QUERY,
   DEFAULT_SEARCH_CENTER,
   buildInfoWindowContent,
-  buildNearbySearchRequest,
-  buildTextSearchRequest,
+  buildSearchByTextRequests,
   getDirectionsLinks,
   normalizePlacesResults,
   parseLiveSearchIntent,
@@ -77,7 +76,6 @@ export function SearchMapExplorer({
   const mapRef = useRef<HTMLDivElement | null>(null);
   const resultsListRef = useRef<Map<string, HTMLDivElement>>(new Map());
   const mapInstanceRef = useRef<any>(null);
-  const placesServiceRef = useRef<any>(null);
   const infoWindowRef = useRef<any>(null);
   const markersRef = useRef<Map<string, any>>(new Map());
   const requestIdRef = useRef(0);
@@ -175,12 +173,6 @@ export function SearchMapExplorer({
       });
     }
 
-    if (!placesServiceRef.current) {
-      placesServiceRef.current = new googleMaps.places.PlacesService(
-        mapInstanceRef.current
-      );
-    }
-
     if (!infoWindowRef.current) {
       infoWindowRef.current = new googleMaps.InfoWindow();
     }
@@ -192,7 +184,7 @@ export function SearchMapExplorer({
   }, [currentLocation, scriptStatus]);
 
   useEffect(() => {
-    if (scriptStatus !== "ready" || !placesServiceRef.current || locationStatus === "locating") {
+    if (scriptStatus !== "ready" || locationStatus === "locating") {
       return;
     }
 
@@ -281,12 +273,11 @@ export function SearchMapExplorer({
   }
 
   async function runSearch(nextQuery: string) {
-    if (!window.google?.maps || !placesServiceRef.current) {
+    if (!window.google?.maps) {
       return;
     }
 
     const googleMaps = window.google.maps;
-    const service = placesServiceRef.current;
     const intent = parseLiveSearchIntent(nextQuery, {
       openNowOnly
     });
@@ -296,49 +287,62 @@ export function SearchMapExplorer({
     setSearchStatus("searching");
     setStatusMessage("Searching Google Maps and syncing the result list with pins...");
 
-    const textSearchResponse = await executePlacesSearch(
-      service,
-      "textSearch",
-      buildTextSearchRequest(googleMaps, intent, currentLocation)
-    );
+    let rawResults: any[] = [];
+    let lastSearchError: Error | null = null;
 
-    let rawResults = textSearchResponse.results;
-    let status = textSearchResponse.status;
+    try {
+      const { Place } =
+        typeof googleMaps.importLibrary === "function"
+          ? await googleMaps.importLibrary("places")
+          : { Place: googleMaps.places?.Place };
 
-    if (
-      status !== googleMaps.places.PlacesServiceStatus.OK ||
-      rawResults.length === 0
-    ) {
-      const nearbyResponse = await executePlacesSearch(
-        service,
-        "nearbySearch",
-        buildNearbySearchRequest(googleMaps, intent, currentLocation)
+      if (!Place?.searchByText) {
+        throw new Error("Google Places search is unavailable in this browser session.");
+      }
+
+      const searchRequests = buildSearchByTextRequests(
+        googleMaps,
+        intent,
+        currentLocation
       );
 
-      rawResults = nearbyResponse.results;
-      status = nearbyResponse.status;
+      for (const request of searchRequests) {
+        const response = await Place.searchByText(request);
+        rawResults = response?.places ?? [];
+
+        if (rawResults.length > 0) {
+          break;
+        }
+      }
+    } catch (error) {
+      console.error("Google Places search failed", error);
+      lastSearchError =
+        error instanceof Error
+          ? error
+          : new Error("Google Maps search failed.");
     }
 
     if (requestId !== requestIdRef.current) {
       return;
     }
 
-    if (
-      status === googleMaps.places.PlacesServiceStatus.ZERO_RESULTS ||
-      rawResults.length === 0
-    ) {
-      setResults([]);
-      setSelectedResultId("");
-      setSearchStatus("no_results");
-      setStatusMessage("No results found in this area. Try broadening the wording or turning off Open Now.");
-      return;
-    }
-
-    if (status !== googleMaps.places.PlacesServiceStatus.OK) {
+    if (lastSearchError) {
       setResults([]);
       setSelectedResultId("");
       setSearchStatus("error");
-      setStatusMessage("Google Maps could not complete that search right now. Please try again.");
+      setStatusMessage(
+        "Google Maps could not complete that search. Make sure Places API (New) is enabled for this key, then try again."
+      );
+      return;
+    }
+
+    if (rawResults.length === 0) {
+      setResults([]);
+      setSelectedResultId("");
+      setSearchStatus("no_results");
+      setStatusMessage(
+        "No results found in this area. Try broadening the wording or turning off Open Now."
+      );
       return;
     }
 
@@ -516,7 +520,7 @@ export function SearchMapExplorer({
             <SummaryCard
               icon={<Clock3 className="h-4 w-4" />}
               label="Open now"
-              value={String(sortedResults.filter((result) => result.isOpenNow !== false).length)}
+              value={String(sortedResults.filter((result) => result.isOpenNow === true).length)}
             />
           </div>
 
@@ -564,7 +568,13 @@ export function SearchMapExplorer({
                       <SummaryCard
                         icon={<Navigation className="h-4 w-4" />}
                         label="Status"
-                        value={result.isOpenNow === false ? "Closed" : "Open now"}
+                        value={
+                          result.isOpenNow === true
+                            ? "Open now"
+                            : result.isOpenNow === false
+                              ? "Closed"
+                              : "Hours unknown"
+                        }
                       />
                       <SummaryCard
                         icon={<Users className="h-4 w-4" />}
@@ -637,6 +647,14 @@ export function SearchMapExplorer({
               />
             ) : null}
 
+            {searchStatus === "error" ? (
+              <EmptyStateCard
+                icon={<AlertCircle className="h-5 w-5" />}
+                title="Google search needs attention"
+                body="The live search request failed. Double-check that Places API (New) is enabled for this Google Maps key."
+              />
+            ) : null}
+
             {scriptStatus === "missing_key" ? (
               <EmptyStateCard
                 icon={<AlertCircle className="h-5 w-5" />}
@@ -674,26 +692,14 @@ export function SearchMapExplorer({
             {searchStatus === "no_results" ? (
               <MapOverlayCard message="No results found in this area. The map stays centered so the view never feels blank." />
             ) : null}
+            {searchStatus === "error" ? (
+              <MapOverlayCard message="Google Maps search failed. Verify the key has Places API (New) enabled, then refresh the page." />
+            ) : null}
           </div>
         </div>
       </div>
     </section>
   );
-
-  async function executePlacesSearch(
-    service: any,
-    method: "textSearch" | "nearbySearch",
-    request: Record<string, unknown>
-  ) {
-    return new Promise<{ results: any[]; status: any }>((resolve) => {
-      service[method](request, (callbackResults: any[] | null, callbackStatus: any) => {
-        resolve({
-          results: callbackResults ?? [],
-          status: callbackStatus
-        });
-      });
-    });
-  }
 }
 
 function SummaryCard({

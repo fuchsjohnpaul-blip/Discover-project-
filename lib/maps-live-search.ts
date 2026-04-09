@@ -49,23 +49,24 @@ export type LiveSearchResult = {
 };
 
 type RawPlaceResult = {
-  place_id?: string;
-  name?: string;
-  formatted_address?: string;
-  vicinity?: string;
-  geometry?: {
-    location?: {
-      lat: () => number;
-      lng: () => number;
-    };
-  };
+  id?: string;
+  displayName?: string | { text?: string };
+  formattedAddress?: string;
+  shortFormattedAddress?: string;
+  location?:
+    | {
+        lat: () => number;
+        lng: () => number;
+      }
+    | {
+        lat: number;
+        lng: number;
+      };
   rating?: number;
-  user_ratings_total?: number;
-  price_level?: number;
+  userRatingCount?: number;
+  priceLevel?: number | string;
   business_status?: string;
-  opening_hours?: {
-    open_now?: boolean;
-  };
+  businessStatus?: string;
   types?: string[];
 };
 
@@ -123,44 +124,64 @@ export function parseLiveSearchIntent(
   };
 }
 
-export function buildTextSearchRequest(
+export function buildSearchByTextRequests(
   googleMaps: any,
   intent: LiveSearchIntent,
   location: SearchLocation,
   radiusMeters = 6000
 ) {
-  const queryParts = [
-    intent.dietaryTag,
-    intent.keywords.join(" "),
-    "restaurant"
-  ].filter(Boolean);
-
-  return {
-    query: queryParts.join(" ").trim() || "restaurant",
-    location: new googleMaps.LatLng(location.latitude, location.longitude),
-    radius: radiusMeters,
-    type: intent.type,
-    openNow: intent.openNowOnly
+  const baseRequest = {
+    fields: [
+      "displayName",
+      "formattedAddress",
+      "location",
+      "businessStatus",
+      "rating",
+      "userRatingCount",
+      "priceLevel",
+      "types"
+    ],
+    includedType: intent.type,
+    isOpenNow: intent.openNowOnly,
+    language: "en-US",
+    locationRestriction: {
+      center: {
+        lat: location.latitude,
+        lng: location.longitude
+      },
+      radius: radiusMeters
+    },
+    maxResultCount: 12,
+    minRating: 1,
+    region: "us",
+    useStrictTypeFiltering: false
   };
-}
 
-export function buildNearbySearchRequest(
-  googleMaps: any,
-  intent: LiveSearchIntent,
-  location: SearchLocation
-) {
-  const keyword = [intent.dietaryTag, intent.keywords.join(" ")]
-    .filter(Boolean)
-    .join(" ")
-    .trim();
+  const queryCandidates = Array.from(
+    new Set(
+      [
+        buildPrimarySearchQuery(intent),
+        buildFallbackSearchQuery(intent),
+        buildBroadSearchQuery(intent)
+      ].filter((query): query is string => Boolean(query))
+    )
+  );
 
-  return {
-    location: new googleMaps.LatLng(location.latitude, location.longitude),
-    rankBy: googleMaps.places.RankBy.DISTANCE,
-    keyword: keyword || undefined,
-    type: intent.type,
-    openNow: intent.openNowOnly
-  };
+  return queryCandidates.map((textQuery, index) => ({
+    ...baseRequest,
+    locationBias:
+      index === 0
+        ? undefined
+        : {
+            lat: location.latitude,
+            lng: location.longitude
+          },
+    locationRestriction: index === 0 ? baseRequest.locationRestriction : undefined,
+    rankPreference:
+      googleMaps.places?.SearchByTextRankPreference?.DISTANCE ??
+      undefined,
+    textQuery
+  }));
 }
 
 export function normalizePlacesResults({
@@ -244,21 +265,22 @@ function normalizePlaceResult(
   origin: SearchLocation,
   curatedRestaurants: SampleRestaurant[]
 ): LiveSearchResult | null {
-  const latitude = place.geometry?.location?.lat?.();
-  const longitude = place.geometry?.location?.lng?.();
+  const name = getPlaceName(place);
+  const placeId = place.id;
+  const coordinates = getPlaceCoordinates(place);
+
+  if (!placeId || !name || !coordinates) {
+    return null;
+  }
 
   if (
-    !place.place_id ||
-    !place.name ||
-    typeof latitude !== "number" ||
-    typeof longitude !== "number"
+    place.businessStatus === "CLOSED_PERMANENTLY" ||
+    place.business_status === "CLOSED_PERMANENTLY"
   ) {
     return null;
   }
 
-  if (place.business_status === "CLOSED_PERMANENTLY") {
-    return null;
-  }
+  const { latitude, longitude } = coordinates;
 
   const matchedRestaurant = findCuratedRestaurantMatch(place, curatedRestaurants);
   const matchedMenuItems = matchedRestaurant
@@ -272,18 +294,21 @@ function normalizePlaceResult(
     (matchedRestaurant ? "Gluten-Friendly" : "Live Place");
 
   return {
-    id: place.place_id,
-    placeId: place.place_id,
-    name: place.name,
-    address: place.formatted_address ?? place.vicinity ?? "Address unavailable",
+    id: placeId,
+    placeId,
+    name,
+    address:
+      place.formattedAddress ??
+      place.shortFormattedAddress ??
+      "Address unavailable",
     latitude,
     longitude,
     distanceMiles: getDistanceMiles(origin, { latitude, longitude }),
     rating: place.rating ?? null,
-    userRatingsTotal: place.user_ratings_total ?? null,
-    priceLevel: place.price_level ?? null,
-    isOpenNow: place.opening_hours?.open_now ?? null,
-    businessStatus: place.business_status ?? null,
+    userRatingsTotal: place.userRatingCount ?? null,
+    priceLevel: normalizePriceLevel(place.priceLevel),
+    isOpenNow: intent.openNowOnly ? true : null,
+    businessStatus: place.businessStatus ?? place.business_status ?? null,
     types: place.types ?? [],
     matchedRestaurant,
     matchedMenuItems,
@@ -304,9 +329,9 @@ function findCuratedRestaurantMatch(
   place: RawPlaceResult,
   curatedRestaurants: SampleRestaurant[]
 ) {
-  const normalizedPlaceName = normalizeText(place.name ?? "");
+  const normalizedPlaceName = normalizeText(getPlaceName(place));
   const normalizedAddress = normalizeText(
-    place.formatted_address ?? place.vicinity ?? ""
+    place.formattedAddress ?? place.shortFormattedAddress ?? ""
   );
 
   return (
@@ -369,6 +394,93 @@ function normalizeText(value: string) {
     .toLowerCase()
     .replace(/bar-b-q/g, "barbecue")
     .replace(/[^a-z0-9]/g, "");
+}
+
+function buildPrimarySearchQuery(intent: LiveSearchIntent) {
+  const focusedQuery = [intent.dietaryTag, intent.keywords.join(" "), "restaurant"]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+
+  return focusedQuery || intent.rawQuery.trim() || "restaurant";
+}
+
+function buildFallbackSearchQuery(intent: LiveSearchIntent) {
+  const fallbackQuery = [intent.dietaryTag, "restaurant"]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+
+  return fallbackQuery || null;
+}
+
+function buildBroadSearchQuery(intent: LiveSearchIntent) {
+  const broadQuery = [
+    intent.keywords.slice(0, 2).join(" "),
+    intent.type
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+
+  return broadQuery === "restaurant" ? null : broadQuery;
+}
+
+function getPlaceName(place: RawPlaceResult) {
+  if (typeof place.displayName === "string") {
+    return place.displayName;
+  }
+
+  if (place.displayName?.text) {
+    return place.displayName.text;
+  }
+
+  return "";
+}
+
+function getPlaceCoordinates(place: RawPlaceResult) {
+  if (
+    typeof place.location?.lat === "function" &&
+    typeof place.location?.lng === "function"
+  ) {
+    return {
+      latitude: place.location.lat(),
+      longitude: place.location.lng()
+    };
+  }
+
+  if (
+    typeof place.location?.lat === "number" &&
+    typeof place.location?.lng === "number"
+  ) {
+    return {
+      latitude: place.location.lat,
+      longitude: place.location.lng
+    };
+  }
+
+  return null;
+}
+
+function normalizePriceLevel(priceLevel: RawPlaceResult["priceLevel"]) {
+  if (typeof priceLevel === "number") {
+    return priceLevel;
+  }
+
+  switch (priceLevel) {
+    case "PRICE_LEVEL_FREE":
+      return 0;
+    case "PRICE_LEVEL_INEXPENSIVE":
+      return 1;
+    case "PRICE_LEVEL_MODERATE":
+      return 2;
+    case "PRICE_LEVEL_EXPENSIVE":
+      return 3;
+    case "PRICE_LEVEL_VERY_EXPENSIVE":
+      return 4;
+    default:
+      return null;
+  }
 }
 
 function getDistanceMiles(origin: SearchLocation, target: SearchLocation) {

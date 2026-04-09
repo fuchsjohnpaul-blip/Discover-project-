@@ -55,7 +55,7 @@ NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_key_here
 That Google Maps key should have both:
 
 - Maps JavaScript API
-- Places API / Places Library enabled
+- Places API (New) enabled
 
 For a fuller step-by-step guide, see:
 

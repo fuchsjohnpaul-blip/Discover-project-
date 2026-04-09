@@ -83,7 +83,7 @@ Without that key, the app will show a graceful fallback state instead of the liv
 The Google Maps project should have both of these enabled:
 
 - Maps JavaScript API
-- Places API / Places Library
+- Places API (New)
 
 ## 6. Start Local Development
 
