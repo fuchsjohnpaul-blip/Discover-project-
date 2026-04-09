@@ -130,6 +130,14 @@ export function buildSearchByTextRequests(
   location: SearchLocation,
   radiusMeters = 6000
 ) {
+  const circleBias = {
+    center: {
+      lat: location.latitude,
+      lng: location.longitude
+    },
+    radius: radiusMeters
+  };
+
   const baseRequest = {
     fields: [
       "displayName",
@@ -144,13 +152,7 @@ export function buildSearchByTextRequests(
     includedType: intent.type,
     isOpenNow: intent.openNowOnly,
     language: "en-US",
-    locationRestriction: {
-      center: {
-        lat: location.latitude,
-        lng: location.longitude
-      },
-      radius: radiusMeters
-    },
+    locationBias: circleBias,
     maxResultCount: 12,
     minRating: 1,
     region: "us",
@@ -171,12 +173,11 @@ export function buildSearchByTextRequests(
     ...baseRequest,
     locationBias:
       index === 0
-        ? undefined
+        ? circleBias
         : {
             lat: location.latitude,
             lng: location.longitude
           },
-    locationRestriction: index === 0 ? baseRequest.locationRestriction : undefined,
     rankPreference:
       googleMaps.places?.SearchByTextRankPreference?.DISTANCE ??
       undefined,
