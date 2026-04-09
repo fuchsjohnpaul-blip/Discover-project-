@@ -3,21 +3,17 @@
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
 import {
-  Clock3,
   FlaskConical,
   MapPin,
   ShieldCheck,
-  Star,
   Users,
   UtensilsCrossed
 } from "lucide-react";
 
 import { SearchMapExplorer } from "@/components/search-map-explorer";
-import { buttonVariants } from "@/components/ui/button";
 import {
   buildMealFeedEntries,
   feedFilters,
-  getDirectionsLinks,
   matchesFeedFilter,
   type FeedFilter,
   type MealFeedEntry
@@ -48,13 +44,6 @@ export function HomePageClient({
     matchesFeedFilter(entry, activeFilter)
   );
   const visibleFeedEntries = filteredFeedEntries.slice(0, visibleCount);
-  const selectedEntry =
-    filteredFeedEntries.find((entry) => entry.id === selectedEntryId) ??
-    filteredFeedEntries[0] ??
-    allFeedEntries[0];
-  const selectedRestaurant = initialRestaurants.find(
-    (restaurant) => restaurant.slug === selectedEntry?.restaurantSlug
-  );
   const safeFeedCount = filteredFeedEntries.filter(
     (entry) => entry.menuItem.status === "Verified Safe"
   ).length;
@@ -155,7 +144,7 @@ export function HomePageClient({
 
         <SearchMapExplorer curatedRestaurants={initialRestaurants} />
 
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_430px] xl:items-start">
+        <div>
           <section className="rounded-[2rem] border bg-white/90 p-5 shadow-[0_24px_64px_rgba(68,60,42,0.1)]">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
@@ -204,7 +193,7 @@ export function HomePageClient({
                     <article
                       className={cn(
                         "rounded-[2rem] border bg-white/90 p-4 shadow-[0_20px_50px_rgba(68,60,42,0.1)] transition hover:-translate-y-1",
-                        selectedEntry?.id === entry.id &&
+                        selectedEntryId === entry.id &&
                           "border-primary ring-2 ring-primary/20"
                       )}
                     >
@@ -309,128 +298,6 @@ export function HomePageClient({
               </div>
             )}
           </section>
-
-          <article className="rounded-[2rem] border bg-white/85 p-6 shadow-[0_24px_64px_rgba(68,60,42,0.1)] backdrop-blur xl:sticky xl:top-6">
-            {selectedRestaurant && selectedEntry ? (
-              <>
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                      Selected meal
-                    </p>
-                    <h3 className="mt-2 text-3xl font-semibold">
-                      {selectedEntry.menuItem.name}
-                    </h3>
-                    <p className="mt-2 text-sm font-medium text-foreground">
-                      {selectedRestaurant.name}
-                    </p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {selectedRestaurant.address}
-                    </p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {selectedRestaurant.neighborhood}
-                    </p>
-                  </div>
-                  <span className="inline-flex rounded-full bg-secondary px-3 py-1 text-sm font-medium text-secondary-foreground">
-                    {selectedEntry.menuItem.safetyLevel}
-                  </span>
-                </div>
-
-                <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                  <MetricCard
-                    icon={<Star className="h-4 w-4" />}
-                    label="Safety rating"
-                    value={selectedRestaurant.glutenSafetyRating.toFixed(1)}
-                  />
-                  <MetricCard
-                    icon={<Clock3 className="h-4 w-4" />}
-                    label="Prep time"
-                    value={`${selectedEntry.menuItem.prepTimeMinutes} min`}
-                  />
-                  <MetricCard
-                    icon={<MapPin className="h-4 w-4" />}
-                    label="Distance"
-                    value={`${selectedRestaurant.distanceMiles.toFixed(1)} mi`}
-                  />
-                </div>
-
-                <div className="mt-5 rounded-[1.5rem] border bg-background/80 p-5">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                        Price and trust
-                      </p>
-                      <p className="mt-2 text-lg font-semibold text-foreground">
-                        {selectedEntry.menuItem.priceLabel} •{" "}
-                        {selectedEntry.menuItem.verificationMethod}
-                      </p>
-                    </div>
-                    <span
-                      className={cn(
-                        "inline-flex rounded-full px-3 py-1 text-sm font-medium",
-                        selectedEntry.menuItem.status === "Verified Safe"
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-secondary text-secondary-foreground"
-                      )}
-                    >
-                      {selectedEntry.menuItem.status}
-                    </span>
-                  </div>
-
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {selectedEntry.menuItem.verificationBadges.map((badge) => (
-                      <VerificationPill key={badge} badge={badge} />
-                    ))}
-                  </div>
-
-                  <p className="mt-4 text-sm leading-6 text-muted-foreground">
-                    {selectedEntry.menuItem.confidenceNote}
-                  </p>
-                  <p className="mt-3 text-sm leading-6 text-foreground">
-                    {selectedEntry.menuItem.rationale}
-                  </p>
-                </div>
-
-                <div className="mt-5 flex flex-wrap gap-2">
-                  <a
-                    className={cn(
-                      buttonVariants({ variant: "default", size: "sm" }),
-                      "no-underline"
-                    )}
-                    href={getDirectionsLinks(selectedEntry).google}
-                    rel="noreferrer"
-                    target="_blank"
-                  >
-                    Google Maps
-                  </a>
-                  <a
-                    className={cn(
-                      buttonVariants({ variant: "outline", size: "sm" }),
-                      "no-underline"
-                    )}
-                    href={getDirectionsLinks(selectedEntry).apple}
-                    rel="noreferrer"
-                    target="_blank"
-                  >
-                    Apple Maps
-                  </a>
-                </div>
-              </>
-            ) : (
-              <div className="flex min-h-[420px] items-center justify-center rounded-[1.5rem] border border-dashed bg-background/70 p-6 text-center">
-                <div>
-                  <p className="text-sm font-semibold">
-                    The feed is waiting for a selection
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    Choose a curated meal card on the left and this panel will
-                    fill in with restaurant context and the rest of that menu
-                    preview.
-                  </p>
-                </div>
-              </div>
-            )}
-          </article>
         </div>
       </div>
     </main>
@@ -456,28 +323,6 @@ function FeedStatCard({
         {description}
       </p>
     </article>
-  );
-}
-
-function MetricCard({
-  icon,
-  label,
-  value
-}: {
-  icon: ReactNode;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="rounded-[1.15rem] border bg-white/80 p-3">
-      <div className="flex items-center gap-2 text-muted-foreground">
-        {icon}
-        <span className="text-xs font-semibold uppercase tracking-[0.14em]">
-          {label}
-        </span>
-      </div>
-      <p className="mt-2 text-sm font-semibold text-foreground">{value}</p>
-    </div>
   );
 }
 
