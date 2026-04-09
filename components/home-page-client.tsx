@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 
 import {
   Clock3,
@@ -121,10 +121,10 @@ export function HomePageClient({
                 Find a nearby meal and watch the map stay perfectly in sync.
               </h1>
               <p className="mt-4 text-lg leading-8 text-muted-foreground">
-                The home tab now pairs a Google Maps-style local search with the
+                The home tab now pairs a location-aware meal search with the
                 curated feed below, so users can move from a natural-language
-                request into exact pins, live result cards, and trusted meal
-                context without friction.
+                request into synchronized pins, trusted result cards, and local
+                meal context without friction.
               </p>
             </div>
 
@@ -136,7 +136,7 @@ export function HomePageClient({
                 <FeedStatCard
                   icon={<MapPin className="h-5 w-5" />}
                   title="One search stream"
-                  description="The map markers and live result list now come from the same normalized Google Places response."
+                  description="The map markers and search results now come from the same approved Tuscaloosa dataset."
                 />
                 <FeedStatCard
                   icon={<ShieldCheck className="h-5 w-5" />}
@@ -517,7 +517,7 @@ function FeedStatCard({
   title,
   description
 }: {
-  icon: React.ReactNode;
+  icon: ReactNode;
   title: string;
   description: string;
 }) {
@@ -539,7 +539,7 @@ function MetricCard({
   label,
   value
 }: {
-  icon: React.ReactNode;
+  icon: ReactNode;
   label: string;
   value: string;
 }) {

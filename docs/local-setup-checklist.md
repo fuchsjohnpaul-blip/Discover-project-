@@ -6,7 +6,8 @@ This checklist explains what needs to happen before the app can run locally with
 
 - Next.js
 - Supabase
-- Google Maps
+- Leaflet
+- OpenStreetMap
 
 It is written in a practical order so the setup is easier to follow.
 
@@ -44,14 +45,12 @@ Expected variables:
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=
 ```
 
 Use:
 
 - `NEXT_PUBLIC_SUPABASE_URL` from your Supabase project
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` from your Supabase project API settings
-- `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` from your Google Maps project
 
 ## 4. Prepare Supabase
 
@@ -68,24 +67,13 @@ The current codebase already includes:
 - Verification tables
 - Seed data for Tuscaloosa sample restaurants
 
-## 5. Enable Google Maps
+## 5. Map Requirements
 
-The codebase now includes a live Google Maps + Places search experience.
+The codebase now includes a Leaflet + OpenStreetMap map experience.
 
-For the live map to work, the Google Maps JavaScript API key must be active and placed in:
+For the current MVP map, no paid map API key is required.
 
-```bash
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
-```
-
-Without that key, the app will show a graceful fallback state instead of the live map.
-
-The Google Maps project should have both of these enabled:
-
-- Maps JavaScript API
-- Places API (New)
-
-If `Places API (New)` was just enabled, Google can take a few minutes to start accepting live requests from the key. During that delay, the app may show the reviewed Tuscaloosa fallback dataset instead of live Google Places results.
+The browser still needs internet access so it can load Leaflet and the OpenStreetMap tile layer.
 
 ## 6. Start Local Development
 
@@ -105,17 +93,17 @@ After setup is complete, the first things to verify are:
 - Featured restaurant cards are clickable
 - The restaurant detail panel updates when a card is selected
 - Filters change the visible restaurant list
-- The Google Maps shell loads if the API key is valid
-- The live search list and the map markers stay synchronized from one search response
+- The Leaflet map loads
+- The search list and the map markers stay synchronized from one approved result set
 
 ## 8. Known Current Limits
 
-Right now, the project uses a mix of live Google Places search and curated sample meal data.
+Right now, the project uses curated meal data plus a no-billing map layer.
 
 That means:
 
-- Google Places can power the live list and map when the API key is configured
-- Curated meal verification still comes from the app dataset, not directly from Google Places
+- Search results come from the approved Tuscaloosa dataset
+- The map layer comes from Leaflet with OpenStreetMap tiles
 - Supabase reads are available with a fallback path when live configuration is missing
 
 ## 9. Recommended Next Technical Step
@@ -123,4 +111,4 @@ That means:
 After local setup works, the best next engineering step is:
 
 1. Replace sample-data reads with real Supabase-backed queries
-2. Verify the live Google Maps shell with those same records
+2. Verify the Leaflet map with those same records

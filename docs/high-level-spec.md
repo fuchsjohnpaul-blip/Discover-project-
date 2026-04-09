@@ -123,7 +123,7 @@ Each card should aim to show:
 - Safety rating or confidence indicators
 - Estimated prep speed when available
 
-For the Google Maps-style live search experience, the result system should also:
+For the synchronized local search experience, the result system should also:
 
 - Clear old markers before every new search
 - Prefer businesses currently open when `Open Now` is enabled
@@ -218,7 +218,7 @@ That means:
 
 ### Mapping
 
-The MVP will use `Google Maps` as the mapping provider because it feels familiar to many users and fits the product goal of easy restaurant discovery.
+The MVP will use `Leaflet` with `OpenStreetMap` tiles as the mapping foundation so the map can stay interactive without requiring paid map API setup.
 
 ## Recommended Early Data Model
 
@@ -271,7 +271,7 @@ Examples of safer wording:
 - Create product spec
 - Set up Next.js app with TypeScript and shadcn/ui
 - Set up Supabase project and schema
-- Prepare Google Maps integration
+- Prepare the Leaflet + OpenStreetMap map integration
 - Build basic map and restaurant detail experience
 
 ### Phase 2: Verified Dining MVP
