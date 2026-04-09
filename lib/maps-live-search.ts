@@ -48,6 +48,8 @@ export type LiveSearchResult = {
   supportingText: string;
 };
 
+export type LiveSearchSource = "google_places" | "curated_fallback";
+
 type RawPlaceResult = {
   id?: string;
   displayName?: string | { text?: string };
@@ -208,6 +210,42 @@ export function normalizePlacesResults({
   }
 
   return normalized;
+}
+
+export function buildCuratedFallbackResults({
+  intent,
+  origin,
+  curatedRestaurants
+}: {
+  intent: LiveSearchIntent;
+  origin: SearchLocation;
+  curatedRestaurants: SampleRestaurant[];
+}): LiveSearchResult[] {
+  const exactMatches = curatedRestaurants
+    .map((restaurant) =>
+      buildCuratedFallbackResult({
+        restaurant,
+        intent,
+        origin,
+        allowFallbackMeals: false
+      })
+    )
+    .filter((place): place is LiveSearchResult => place !== null);
+
+  if (exactMatches.length > 0) {
+    return exactMatches;
+  }
+
+  return curatedRestaurants
+    .map((restaurant) =>
+      buildCuratedFallbackResult({
+        restaurant,
+        intent,
+        origin,
+        allowFallbackMeals: true
+      })
+    )
+    .filter((place): place is LiveSearchResult => place !== null);
 }
 
 export function sortLiveSearchResults(results: LiveSearchResult[]) {
@@ -388,6 +426,103 @@ function findMatchedMenuItems(
     : keywordFilteredItems.length > 0
       ? keywordFilteredItems
       : safeItems;
+}
+
+function buildCuratedFallbackResult({
+  restaurant,
+  intent,
+  origin,
+  allowFallbackMeals
+}: {
+  restaurant: SampleRestaurant;
+  intent: LiveSearchIntent;
+  origin: SearchLocation;
+  allowFallbackMeals: boolean;
+}): LiveSearchResult | null {
+  const exactKeywordMatches = findExactKeywordMatches(restaurant, intent);
+  const matchedMenuItems = exactKeywordMatches.length > 0
+    ? exactKeywordMatches
+    : allowFallbackMeals
+      ? findMatchedMenuItems(restaurant, intent)
+      : [];
+
+  if (matchedMenuItems.length === 0) {
+    return null;
+  }
+
+  const badges = Array.from(
+    new Set(matchedMenuItems.flatMap((item) => item.verificationBadges))
+  );
+  const safetyLevel = matchedMenuItems[0]?.safetyLevel ?? "Gluten-Friendly";
+
+  return {
+    id: `curated-${restaurant.slug}`,
+    placeId: `curated-${restaurant.slug}`,
+    name: restaurant.name,
+    address: restaurant.address,
+    latitude: restaurant.latitude,
+    longitude: restaurant.longitude,
+    distanceMiles: getDistanceMiles(origin, {
+      latitude: restaurant.latitude,
+      longitude: restaurant.longitude
+    }),
+    rating: restaurant.glutenSafetyRating,
+    userRatingsTotal: matchedMenuItems.length,
+    priceLevel: null,
+    isOpenNow: null,
+    businessStatus: "OPERATIONAL",
+    types: ["restaurant"],
+    matchedRestaurant: restaurant,
+    matchedMenuItems,
+    badges,
+    safetyLevel,
+    supportingText:
+      exactKeywordMatches.length > 0
+        ? `${matchedMenuItems.length} approved meal match${
+            matchedMenuItems.length === 1 ? "" : "es"
+          } from the reviewed Tuscaloosa dataset.`
+        : "Live Google Places search is unavailable right now, so this card is coming from the approved Tuscaloosa fallback dataset."
+  };
+}
+
+function findExactKeywordMatches(
+  restaurant: SampleRestaurant,
+  intent: LiveSearchIntent
+) {
+  const safeItems = restaurant.menuItems.filter(
+    (item) => item.status === "Verified Safe"
+  );
+
+  const keywordFilteredItems =
+    intent.keywords.length > 0
+      ? safeItems.filter((item) => {
+          const searchText = [item.name, ...item.searchTags].join(" ").toLowerCase();
+
+          return intent.keywords.some((keyword) => searchText.includes(keyword));
+        })
+      : safeItems;
+
+  if (keywordFilteredItems.length === 0) {
+    return [];
+  }
+
+  if (intent.certification === "verified") {
+    return keywordFilteredItems.filter((item) => item.verificationBadges.length > 0);
+  }
+
+  if (intent.certification === "user_vetted") {
+    return keywordFilteredItems.filter((item) =>
+      item.verificationBadges.includes("User Vetted")
+    );
+  }
+
+  if (intent.certification === "lab_tested") {
+    return keywordFilteredItems.filter((item) =>
+      item.verificationBadges.includes("Laboratory Tested")
+    );
+  }
+
+  return keywordFilteredItems;
 }
 
 function normalizeText(value: string) {

@@ -18,6 +18,7 @@ import {
 import { Button, buttonVariants } from "@/components/ui/button";
 import { loadGoogleMaps } from "@/lib/google-maps-loader";
 import {
+  buildCuratedFallbackResults,
   DEFAULT_LIVE_SEARCH_QUERY,
   DEFAULT_SEARCH_CENTER,
   buildInfoWindowContent,
@@ -27,6 +28,7 @@ import {
   parseLiveSearchIntent,
   sortLiveSearchResults,
   type LiveSearchResult,
+  type LiveSearchSource,
   type SearchLocation
 } from "@/lib/maps-live-search";
 import { type SampleRestaurant } from "@/lib/sample-data";
@@ -68,6 +70,7 @@ export function SearchMapExplorer({
   const [results, setResults] = useState<LiveSearchResult[]>([]);
   const [selectedResultId, setSelectedResultId] = useState("");
   const [hoveredResultId, setHoveredResultId] = useState("");
+  const [resultSource, setResultSource] = useState<LiveSearchSource>("google_places");
   const [statusMessage, setStatusMessage] = useState(
     "Search for a nearby meal and the list and map will update together."
   );
@@ -327,8 +330,30 @@ export function SearchMapExplorer({
     }
 
     if (lastSearchError) {
+      if (isPlacesPermissionError(lastSearchError)) {
+        const fallbackResults = sortLiveSearchResults(
+          buildCuratedFallbackResults({
+            intent,
+            origin: currentLocation,
+            curatedRestaurants
+          })
+        );
+
+        if (fallbackResults.length > 0) {
+          setResults(fallbackResults);
+          setSelectedResultId(fallbackResults[0]?.id ?? "");
+          setResultSource("curated_fallback");
+          setSearchStatus("ready");
+          setStatusMessage(
+            "Google Places is not enabled for this key yet, so the map is showing approved Tuscaloosa fallback results while setup finishes."
+          );
+          return;
+        }
+      }
+
       setResults([]);
       setSelectedResultId("");
+      setResultSource("google_places");
       setSearchStatus("error");
       setStatusMessage(
         "Google Maps could not complete that search. Make sure Places API (New) is enabled for this key, then try again."
@@ -337,8 +362,28 @@ export function SearchMapExplorer({
     }
 
     if (rawResults.length === 0) {
+      const fallbackResults = sortLiveSearchResults(
+        buildCuratedFallbackResults({
+          intent,
+          origin: currentLocation,
+          curatedRestaurants
+        })
+      );
+
+      if (fallbackResults.length > 0) {
+        setResults(fallbackResults);
+        setSelectedResultId(fallbackResults[0]?.id ?? "");
+        setResultSource("curated_fallback");
+        setSearchStatus("ready");
+        setStatusMessage(
+          "Live Google Places did not return a nearby match, so the map is showing the closest approved Tuscaloosa meals instead."
+        );
+        return;
+      }
+
       setResults([]);
       setSelectedResultId("");
+      setResultSource("google_places");
       setSearchStatus("no_results");
       setStatusMessage(
         "No results found in this area. Try broadening the wording or turning off Open Now."
@@ -356,8 +401,28 @@ export function SearchMapExplorer({
     );
 
     if (normalizedResults.length === 0) {
+      const fallbackResults = sortLiveSearchResults(
+        buildCuratedFallbackResults({
+          intent,
+          origin: currentLocation,
+          curatedRestaurants
+        })
+      );
+
+      if (fallbackResults.length > 0) {
+        setResults(fallbackResults);
+        setSelectedResultId(fallbackResults[0]?.id ?? "");
+        setResultSource("curated_fallback");
+        setSearchStatus("ready");
+        setStatusMessage(
+          "The live search came back too thin for this request, so the map is showing approved Tuscaloosa fallback meals with stronger safety signals."
+        );
+        return;
+      }
+
       setResults([]);
       setSelectedResultId("");
+      setResultSource("google_places");
       setSearchStatus("no_results");
       setStatusMessage("No results found in this area. Try a broader phrase like gluten-free restaurant near me.");
       return;
@@ -365,6 +430,7 @@ export function SearchMapExplorer({
 
     setResults(normalizedResults);
     setSelectedResultId(normalizedResults[0]?.id ?? "");
+    setResultSource("google_places");
     setSearchStatus("ready");
     setStatusMessage(
       `Showing ${normalizedResults.length} synchronized place result${
@@ -439,6 +505,13 @@ export function SearchMapExplorer({
             }
           />
           <StatusChip label={openNowOnly ? "Open Now enabled" : "Showing all hours"} />
+          <StatusChip
+            label={
+              resultSource === "google_places"
+                ? "Google Places live"
+                : "Curated Tuscaloosa fallback"
+            }
+          />
         </div>
       </div>
 
@@ -780,4 +853,12 @@ function getMarkerIcon(
     strokeWeight: 2,
     scale: state === "selected" ? 12 : state === "hovered" ? 10 : 8
   };
+}
+
+function isPlacesPermissionError(error: Error) {
+  return (
+    error.message.includes("PERMISSION_DENIED") ||
+    error.message.includes("Places API (New) has not been used") ||
+    error.message.includes("places.googleapis.com")
+  );
 }

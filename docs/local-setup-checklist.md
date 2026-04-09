@@ -85,6 +85,8 @@ The Google Maps project should have both of these enabled:
 - Maps JavaScript API
 - Places API (New)
 
+If `Places API (New)` was just enabled, Google can take a few minutes to start accepting live requests from the key. During that delay, the app may show the reviewed Tuscaloosa fallback dataset instead of live Google Places results.
+
 ## 6. Start Local Development
 
 Once Node.js is installed and env vars are ready:
