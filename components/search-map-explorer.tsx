@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 import { Button, buttonVariants } from "@/components/ui/button";
+import { loadGoogleMaps } from "@/lib/google-maps-loader";
 import {
   DEFAULT_LIVE_SEARCH_QUERY,
   DEFAULT_SEARCH_CENTER,
@@ -108,55 +109,24 @@ export function SearchMapExplorer({
       return;
     }
 
-    if (window.google?.maps?.places) {
-      setScriptStatus("ready");
-      return;
-    }
-
     setScriptStatus("loading");
+    let isActive = true;
 
-    const existingScript = document.querySelector<HTMLScriptElement>(
-      'script[data-google-maps-loader="true"]'
-    );
-
-    if (existingScript) {
-      existingScript.addEventListener("load", handleLoad);
-      existingScript.addEventListener("error", handleError);
-
-      return () => {
-        existingScript.removeEventListener("load", handleLoad);
-        existingScript.removeEventListener("error", handleError);
-      };
-    }
-
-    const script = document.createElement("script");
-    script.src =
-      `https://maps.googleapis.com/maps/api/js?key=${apiKey}` +
-      `&libraries=places&v=weekly`;
-    script.async = true;
-    script.defer = true;
-    script.dataset.googleMapsLoader = "true";
-    script.addEventListener("load", handleLoad);
-    script.addEventListener("error", handleError);
-    document.head.appendChild(script);
+    void loadGoogleMaps(apiKey)
+      .then(() => {
+        if (isActive) {
+          setScriptStatus("ready");
+        }
+      })
+      .catch(() => {
+        if (isActive) {
+          setScriptStatus("error");
+        }
+      });
 
     return () => {
-      script.removeEventListener("load", handleLoad);
-      script.removeEventListener("error", handleError);
+      isActive = false;
     };
-
-    function handleLoad() {
-      if (window.google?.maps?.places) {
-        setScriptStatus("ready");
-        return;
-      }
-
-      setScriptStatus("error");
-    }
-
-    function handleError() {
-      setScriptStatus("error");
-    }
   }, [apiKey]);
 
   useEffect(() => {

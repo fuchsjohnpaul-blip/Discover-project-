@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { loadGoogleMaps } from "@/lib/google-maps-loader";
 import { sampleRestaurants, type SampleRestaurant } from "@/lib/sample-data";
 
 declare global {
@@ -37,48 +38,24 @@ export function GoogleMapShell({
       return;
     }
 
-    if (window.google?.maps) {
-      setScriptStatus("ready");
-      return;
-    }
-
     setScriptStatus("loading");
+    let isActive = true;
 
-    const existingScript = document.querySelector<HTMLScriptElement>(
-      'script[data-google-maps-loader="true"]'
-    );
-
-    if (existingScript) {
-      existingScript.addEventListener("load", handleLoad);
-      existingScript.addEventListener("error", handleError);
-
-      return () => {
-        existingScript.removeEventListener("load", handleLoad);
-        existingScript.removeEventListener("error", handleError);
-      };
-    }
-
-    const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}`;
-    script.async = true;
-    script.defer = true;
-    script.dataset.googleMapsLoader = "true";
-    script.addEventListener("load", handleLoad);
-    script.addEventListener("error", handleError);
-    document.head.appendChild(script);
+    void loadGoogleMaps(apiKey)
+      .then(() => {
+        if (isActive) {
+          setScriptStatus("ready");
+        }
+      })
+      .catch(() => {
+        if (isActive) {
+          setScriptStatus("error");
+        }
+      });
 
     return () => {
-      script.removeEventListener("load", handleLoad);
-      script.removeEventListener("error", handleError);
+      isActive = false;
     };
-
-    function handleLoad() {
-      setScriptStatus("ready");
-    }
-
-    function handleError() {
-      setScriptStatus("error");
-    }
   }, [apiKey]);
 
   useEffect(() => {
