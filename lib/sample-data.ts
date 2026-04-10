@@ -16,6 +16,8 @@ export type SafetyLevel =
   | "Gluten-Friendly"
   | "Contains Gluten";
 
+export type MenuCourseType = "Meal" | "Appetizer";
+
 export type DietaryAttributes = {
   glutenFree: DietaryFlagValue;
   soyFree: DietaryFlagValue;
@@ -973,4 +975,39 @@ export function formatPositiveDietarySignals(
   }
 
   return signals;
+}
+
+export function inferMenuCourseType(
+  menuItem: Pick<SampleMenuItem, "name" | "searchTags">
+): MenuCourseType {
+  const searchText = [menuItem.name, ...menuItem.searchTags]
+    .join(" ")
+    .toLowerCase();
+  const appetizerKeywords = [
+    "appetizer",
+    "small plate",
+    "small plates",
+    "starter",
+    "shareable",
+    "shared plate",
+    "shared plates",
+    "dip",
+    "hummus",
+    "baba ghanoush",
+    "dates",
+    "mushroom",
+    "mushrooms",
+    "spring roll",
+    "spring rolls",
+    "fries",
+    "mozzarella sticks",
+    "sticks",
+    "corn dip",
+    "bites",
+    "lollipops"
+  ];
+
+  return appetizerKeywords.some((keyword) => searchText.includes(keyword))
+    ? "Appetizer"
+    : "Meal";
 }

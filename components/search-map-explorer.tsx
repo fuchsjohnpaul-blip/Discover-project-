@@ -16,6 +16,7 @@ import {
   Search,
   ShieldCheck,
   Star,
+  UtensilsCrossed,
   Users
 } from "lucide-react";
 
@@ -35,6 +36,8 @@ import {
 } from "@/lib/maps-live-search";
 import {
   formatPositiveDietarySignals,
+  inferMenuCourseType,
+  type MenuCourseType,
   type SampleRestaurant
 } from "@/lib/sample-data";
 import { cn } from "@/lib/utils";
@@ -66,6 +69,7 @@ export function SearchMapExplorer({
   const [sortMode, setSortMode] = useState<"best_match" | "closest" | "top_rated">(
     "best_match"
   );
+  const [courseFilter, setCourseFilter] = useState<"all" | MenuCourseType>("all");
   const [currentLocation, setCurrentLocation] = useState<SearchLocation>(
     DEFAULT_SEARCH_CENTER
   );
@@ -96,6 +100,30 @@ export function SearchMapExplorer({
 
     return sortLiveSearchResults(results);
   }, [results, sortMode]);
+
+  const visibleResults = useMemo(
+    () =>
+      sortedResults.flatMap((result) => {
+        const filteredMenuItems =
+          courseFilter === "all"
+            ? result.matchedMenuItems
+            : result.matchedMenuItems.filter(
+                (menuItem) => inferMenuCourseType(menuItem) === courseFilter
+              );
+
+        if (filteredMenuItems.length === 0) {
+          return [];
+        }
+
+        return [
+          {
+            ...result,
+            matchedMenuItems: filteredMenuItems
+          }
+        ];
+      }),
+    [courseFilter, sortedResults]
+  );
 
   useEffect(() => {
     setMapStatus("loading");
@@ -192,14 +220,14 @@ export function SearchMapExplorer({
     markersRef.current.forEach((marker) => marker.remove());
     markersRef.current.clear();
 
-    if (sortedResults.length === 0) {
+    if (visibleResults.length === 0) {
       map.setView([currentLocation.latitude, currentLocation.longitude], 13);
       return;
     }
 
     const bounds = L.latLngBounds([]);
 
-    sortedResults.forEach((result, index) => {
+    visibleResults.forEach((result, index) => {
       const marker = L.circleMarker([result.latitude, result.longitude], {
         ...getMarkerStyle("default"),
         pane: "markerPane"
@@ -228,8 +256,8 @@ export function SearchMapExplorer({
       bounds.extend(marker.getLatLng());
     });
 
-    if (sortedResults.length === 1) {
-      const [onlyResult] = sortedResults;
+    if (visibleResults.length === 1) {
+      const [onlyResult] = visibleResults;
       map.setView([onlyResult.latitude, onlyResult.longitude], 14);
       return;
     }
@@ -237,7 +265,13 @@ export function SearchMapExplorer({
     map.fitBounds(bounds, {
       padding: [56, 56]
     });
-  }, [currentLocation, mapStatus, sortedResults]);
+  }, [currentLocation, mapStatus, visibleResults]);
+
+  useEffect(() => {
+    if (!visibleResults.some((result) => result.id === selectedResultId)) {
+      setSelectedResultId(visibleResults[0]?.id ?? "");
+    }
+  }, [selectedResultId, visibleResults]);
 
   useEffect(() => {
     markersRef.current.forEach((marker, resultId) => {
@@ -305,7 +339,7 @@ export function SearchMapExplorer({
       openPopup?: boolean;
     }
   ) {
-    const result = sortedResults.find((entry) => entry.id === resultId);
+    const result = visibleResults.find((entry) => entry.id === resultId);
     const marker = markersRef.current.get(resultId);
     const map = mapInstanceRef.current;
 
@@ -334,13 +368,15 @@ export function SearchMapExplorer({
     }
   }
 
-  const approvedMealCount = sortedResults.reduce(
+  const approvedMealCount = visibleResults.reduce(
     (sum, result) => sum + result.matchedMenuItems.length,
     0
   );
-  const celiacSaferCount = sortedResults.filter(
+  const celiacSaferCount = visibleResults.filter(
     (result) => result.safetyLevel === "Celiac-Safer"
   ).length;
+  const isCourseFilterEmpty =
+    searchStatus === "ready" && visibleResults.length === 0;
 
   return (
     <section className="rounded-[2rem] border bg-white/90 p-5 shadow-[0_24px_64px_rgba(68,60,42,0.1)]">
@@ -426,15 +462,15 @@ export function SearchMapExplorer({
 
       <div className="mt-5 grid gap-5 xl:grid-cols-[0.92fr_1.08fr]">
         <div className="space-y-4">
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <SummaryCard
               icon={<MapPin className="h-4 w-4" />}
               label="Pins"
-              value={String(sortedResults.length)}
+              value={String(visibleResults.length)}
             />
             <SummaryCard
               icon={<ShieldCheck className="h-4 w-4" />}
-              label="Approved meals"
+              label="Approved picks"
               value={String(approvedMealCount)}
             />
             <SummaryCard
@@ -442,10 +478,14 @@ export function SearchMapExplorer({
               label="Celiac-safer"
               value={String(celiacSaferCount)}
             />
+            <CourseFilterCard
+              courseFilter={courseFilter}
+              onCourseFilterChange={setCourseFilter}
+            />
           </div>
 
           <div className="max-h-[42rem] space-y-3 overflow-y-auto pr-1">
-            {sortedResults.map((result) => {
+            {visibleResults.map((result) => {
               const directions = getDirectionsLinks(result);
 
               return (
@@ -561,11 +601,19 @@ export function SearchMapExplorer({
               />
             ) : null}
 
-            {searchStatus === "no_results" ? (
+            {searchStatus === "no_results" || isCourseFilterEmpty ? (
               <EmptyStateCard
                 icon={<AlertCircle className="h-5 w-5" />}
-                title="No approved matches yet"
-                body="Try a broader phrase like gluten-free meal near me or gluten-free barbecue in Tuscaloosa."
+                title={
+                  isCourseFilterEmpty
+                    ? `No ${formatCourseFilterLabel(courseFilter).toLowerCase()} in this view`
+                    : "No approved matches yet"
+                }
+                body={
+                  isCourseFilterEmpty
+                    ? "Try switching the dropdown back to all picks or search for a different kind of dish."
+                    : "Try a broader phrase like gluten-free meal near me or gluten-free barbecue in Tuscaloosa."
+                }
               />
             ) : null}
           </div>
@@ -580,7 +628,7 @@ export function SearchMapExplorer({
               </p>
             </div>
             <span className="rounded-full border bg-background px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              {sortedResults.length} markers
+              {visibleResults.length} markers
             </span>
           </div>
 
@@ -592,8 +640,14 @@ export function SearchMapExplorer({
             {mapStatus === "error" ? (
               <MapOverlayCard message="The map could not load right now. The approved meal list still works below." />
             ) : null}
-            {searchStatus === "no_results" ? (
-              <MapOverlayCard message="No approved matches were found for this search. The map stays centered so the view never feels blank." />
+            {searchStatus === "no_results" || isCourseFilterEmpty ? (
+              <MapOverlayCard
+                message={
+                  isCourseFilterEmpty
+                    ? `No ${formatCourseFilterLabel(courseFilter).toLowerCase()} match the current search view.`
+                    : "No approved matches were found for this search. The map stays centered so the view never feels blank."
+                }
+              />
             ) : null}
           </div>
         </div>
@@ -620,6 +674,42 @@ function SummaryCard({
         </span>
       </div>
       <p className="mt-2 text-sm font-semibold text-foreground">{value}</p>
+    </div>
+  );
+}
+
+function CourseFilterCard({
+  courseFilter,
+  onCourseFilterChange
+}: {
+  courseFilter: "all" | MenuCourseType;
+  onCourseFilterChange: (value: "all" | MenuCourseType) => void;
+}) {
+  return (
+    <div className="rounded-[1.15rem] border bg-white/80 p-3">
+      <div className="flex items-center gap-2 text-muted-foreground">
+        <UtensilsCrossed className="h-4 w-4" />
+        <span className="text-xs font-semibold uppercase tracking-[0.14em]">
+          Course
+        </span>
+      </div>
+      <div className="mt-2">
+        <label className="sr-only" htmlFor="course-filter">
+          Filter search results by course type
+        </label>
+        <select
+          id="course-filter"
+          value={courseFilter}
+          onChange={(event) =>
+            onCourseFilterChange(event.target.value as "all" | MenuCourseType)
+          }
+          className="h-10 w-full rounded-xl border bg-background px-3 text-sm font-semibold text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+        >
+          <option value="all">All picks</option>
+          <option value="Meal">Meals</option>
+          <option value="Appetizer">Appetizers</option>
+        </select>
+      </div>
     </div>
   );
 }
@@ -721,4 +811,12 @@ function buildStatusMessage(
   }
 
   return `Showing the strongest approved Tuscaloosa ${dietaryPhrase}meals from the reviewed local dataset.`;
+}
+
+function formatCourseFilterLabel(courseFilter: "all" | MenuCourseType) {
+  if (courseFilter === "all") {
+    return "All Picks";
+  }
+
+  return courseFilter === "Meal" ? "Meals" : "Appetizers";
 }
