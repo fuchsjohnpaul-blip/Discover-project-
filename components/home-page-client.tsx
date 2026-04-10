@@ -10,6 +10,7 @@ import {
   UtensilsCrossed
 } from "lucide-react";
 
+import { DietaryExpertChat } from "@/components/dietary-expert-chat";
 import { SearchMapExplorer } from "@/components/search-map-explorer";
 import {
   buildMealFeedEntries,
@@ -43,6 +44,8 @@ export function HomePageClient({
   );
   const [visibleCount, setVisibleCount] = useState(FEED_BATCH_SIZE);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const feedEntryRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const [pendingJumpEntryId, setPendingJumpEntryId] = useState("");
 
   const filteredFeedEntries = allFeedEntries.filter((entry) =>
     matchesFeedFilter(entry, activeFilter)
@@ -61,6 +64,26 @@ export function HomePageClient({
       setSelectedEntryId(filteredFeedEntries[0]?.id ?? allFeedEntries[0]?.id ?? "");
     }
   }, [allFeedEntries, filteredFeedEntries, selectedEntryId]);
+
+  useEffect(() => {
+    if (!pendingJumpEntryId) {
+      return;
+    }
+
+    const targetElement = feedEntryRefs.current.get(pendingJumpEntryId);
+
+    if (!targetElement) {
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      targetElement.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+    });
+    setPendingJumpEntryId("");
+  }, [pendingJumpEntryId, visibleFeedEntries.length]);
 
   useEffect(() => {
     const node = loadMoreRef.current;
@@ -88,6 +111,25 @@ export function HomePageClient({
 
     return () => observer.disconnect();
   }, [filteredFeedEntries.length, visibleCount]);
+
+  function registerFeedEntryElement(
+    entryId: string,
+    element: HTMLDivElement | null
+  ) {
+    if (!element) {
+      feedEntryRefs.current.delete(entryId);
+      return;
+    }
+
+    feedEntryRefs.current.set(entryId, element);
+  }
+
+  function focusFeedEntry(entryId: string) {
+    setActiveFilter("All Meals");
+    setVisibleCount(allFeedEntries.length);
+    setSelectedEntryId(entryId);
+    setPendingJumpEntryId(entryId);
+  }
 
   return (
     <main className="min-h-screen px-4 py-6 md:px-8 lg:px-10">
@@ -188,96 +230,100 @@ export function HomePageClient({
             {filteredFeedEntries.length > 0 ? (
               <div className="mt-5 space-y-4">
                 {visibleFeedEntries.map((entry, index) => (
-                  <button
+                  <div
                     key={entry.id}
-                    type="button"
-                    onClick={() => setSelectedEntryId(entry.id)}
-                    className="w-full text-left"
+                    ref={(element) => registerFeedEntryElement(entry.id, element)}
                   >
-                    <article
-                      className={cn(
-                        "rounded-[2rem] border bg-white/90 p-4 shadow-[0_20px_50px_rgba(68,60,42,0.1)] transition hover:-translate-y-1",
-                        selectedEntryId === entry.id &&
-                          "border-primary ring-2 ring-primary/20"
-                      )}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedEntryId(entry.id)}
+                      className="w-full text-left"
                     >
-                      <div
+                      <article
                         className={cn(
-                          "rounded-[1.6rem] p-5",
-                          entry.menuItem.status === "Verified Safe"
-                            ? "bg-[linear-gradient(135deg,rgba(247,251,242,1)_0%,rgba(221,241,230,1)_100%)]"
-                            : "bg-[linear-gradient(135deg,rgba(255,247,239,1)_0%,rgba(244,228,213,1)_100%)]"
+                          "rounded-[2rem] border bg-white/90 p-4 shadow-[0_20px_50px_rgba(68,60,42,0.1)] transition hover:-translate-y-1",
+                          selectedEntryId === entry.id &&
+                            "border-primary ring-2 ring-primary/20"
                         )}
                       >
-                        <div className="flex flex-wrap items-start justify-between gap-3">
-                          <div>
-                            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                              Meal drop {String(index + 1).padStart(2, "0")} •{" "}
+                        <div
+                          className={cn(
+                            "rounded-[1.6rem] p-5",
+                            entry.menuItem.status === "Verified Safe"
+                              ? "bg-[linear-gradient(135deg,rgba(247,251,242,1)_0%,rgba(221,241,230,1)_100%)]"
+                              : "bg-[linear-gradient(135deg,rgba(255,247,239,1)_0%,rgba(244,228,213,1)_100%)]"
+                          )}
+                        >
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                                Meal drop {String(index + 1).padStart(2, "0")} •{" "}
+                                {entry.restaurantName}
+                              </p>
+                              <h3 className="mt-3 text-2xl font-semibold leading-tight md:text-3xl">
+                                {entry.menuItem.name}
+                              </h3>
+                              <p className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-sm text-muted-foreground">
+                                <span>{entry.menuItem.priceLabel}</span>
+                                <span>{entry.distanceMiles.toFixed(1)} miles away</span>
+                                <span>{entry.menuItem.safetyLevel}</span>
+                              </p>
+                            </div>
+                            <span
+                              className={cn(
+                                "inline-flex rounded-full px-3 py-1 text-sm font-medium",
+                                entry.menuItem.status === "Verified Safe"
+                                  ? "bg-primary text-primary-foreground"
+                                  : "bg-secondary text-secondary-foreground"
+                              )}
+                            >
+                              {entry.menuItem.status}
+                            </span>
+                          </div>
+
+                          <p className="mt-5 max-w-2xl text-sm leading-7 text-foreground/85">
+                            {entry.menuItem.confidenceNote}
+                          </p>
+
+                          <DietarySignalPills
+                            dietarySignals={entry.menuItem.dietaryAttributes}
+                          />
+                        </div>
+
+                        <div className="mt-4 grid gap-3 md:grid-cols-[1.15fr_0.85fr]">
+                          <div className="rounded-[1.35rem] border bg-background/70 p-4">
+                            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                              Verification path
+                            </p>
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              {entry.menuItem.verificationBadges.map((badge) => (
+                                <VerificationPill key={badge} badge={badge} />
+                              ))}
+                            </div>
+                            <p className="mt-3 text-sm leading-6 text-foreground">
+                              {entry.menuItem.rationale}
+                            </p>
+                          </div>
+
+                          <div className="rounded-[1.35rem] border bg-background/70 p-4">
+                            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                              Restaurant snapshot
+                            </p>
+                            <p className="mt-2 text-sm font-semibold text-foreground">
                               {entry.restaurantName}
                             </p>
-                            <h3 className="mt-3 text-2xl font-semibold leading-tight md:text-3xl">
-                              {entry.menuItem.name}
-                            </h3>
-                            <p className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-sm text-muted-foreground">
-                              <span>{entry.menuItem.priceLabel}</span>
-                              <span>{entry.distanceMiles.toFixed(1)} miles away</span>
-                              <span>{entry.menuItem.safetyLevel}</span>
+                            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                              {entry.address}
+                            </p>
+                            <p className="mt-3 text-sm leading-6 text-foreground">
+                              {entry.safeItemCount} of {entry.menuItemCount} curated
+                              items currently read as safer starting points.
                             </p>
                           </div>
-                          <span
-                            className={cn(
-                              "inline-flex rounded-full px-3 py-1 text-sm font-medium",
-                              entry.menuItem.status === "Verified Safe"
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-secondary text-secondary-foreground"
-                            )}
-                          >
-                            {entry.menuItem.status}
-                          </span>
                         </div>
-
-                        <p className="mt-5 max-w-2xl text-sm leading-7 text-foreground/85">
-                          {entry.menuItem.confidenceNote}
-                        </p>
-
-                        <DietarySignalPills
-                          dietarySignals={entry.menuItem.dietaryAttributes}
-                        />
-                      </div>
-
-                      <div className="mt-4 grid gap-3 md:grid-cols-[1.15fr_0.85fr]">
-                        <div className="rounded-[1.35rem] border bg-background/70 p-4">
-                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                            Verification path
-                          </p>
-                          <div className="mt-3 flex flex-wrap gap-2">
-                            {entry.menuItem.verificationBadges.map((badge) => (
-                              <VerificationPill key={badge} badge={badge} />
-                            ))}
-                          </div>
-                          <p className="mt-3 text-sm leading-6 text-foreground">
-                            {entry.menuItem.rationale}
-                          </p>
-                        </div>
-
-                        <div className="rounded-[1.35rem] border bg-background/70 p-4">
-                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                            Restaurant snapshot
-                          </p>
-                          <p className="mt-2 text-sm font-semibold text-foreground">
-                            {entry.restaurantName}
-                          </p>
-                          <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                            {entry.address}
-                          </p>
-                          <p className="mt-3 text-sm leading-6 text-foreground">
-                            {entry.safeItemCount} of {entry.menuItemCount} curated
-                            items currently read as safer starting points.
-                          </p>
-                        </div>
-                      </div>
-                    </article>
-                  </button>
+                      </article>
+                    </button>
+                  </div>
                 ))}
 
                 <div
@@ -308,6 +354,8 @@ export function HomePageClient({
           </section>
         </div>
       </div>
+
+      <DietaryExpertChat entries={allFeedEntries} onJumpToEntry={focusFeedEntry} />
     </main>
   );
 }

@@ -71,6 +71,8 @@ The home feed should be easy to scan and feel more like a social-style stream of
 
 The main search interaction should also support natural-language meal requests through a chat-style interface. For example, a user should be able to type a phrase like `Show me gluten-free pasta options near me with Celiac-safe certification` and see structured results instead of a text-only answer.
 
+That assistant should live as a floating bottom-right dietary expert entry point, and it should stay grounded in the approved meal dataset instead of behaving like a generic open-ended chatbot.
+
 The app should parse that request into useful product signals such as:
 
 - Dietary tag
@@ -79,6 +81,8 @@ The app should parse that request into useful product signals such as:
 - Location intent such as `near me`
 
 Instead of replying with a paragraph, the assistant should trigger a dynamic result tray made of scrollable meal cards.
+
+Its tone should be safety-first, with clear limits about what the current data does and does not prove.
 
 The live tray and the live map should always be populated from the same synchronized result array so there is no discrepancy between the visible list and the visible pins.
 
