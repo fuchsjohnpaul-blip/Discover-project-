@@ -4,12 +4,10 @@ import { type ReactNode, useEffect, useRef, useState } from "react";
 
 import {
   Filter,
-  ChevronDown,
-  ChevronUp,
-  Clock,
   ExternalLink,
   FlaskConical,
   MapPin,
+  Star,
   ShieldCheck,
   Users,
   UtensilsCrossed
@@ -17,6 +15,7 @@ import {
 
 import { DietaryExpertChat } from "@/components/dietary-expert-chat";
 import { SearchMapExplorer } from "@/components/search-map-explorer";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   buildMealFeedEntries,
   feedBrowseFilters,
@@ -266,86 +265,97 @@ export function HomePageClient({
                           "border-primary ring-2 ring-primary/15"
                       )}
                     >
-                      <button
-                        type="button"
-                        onClick={() => toggleFeedEntry(entry.id)}
-                        className="w-full text-left"
-                      >
-                        <div className="flex flex-wrap items-start justify-between gap-3">
-                          <div className="min-w-0 flex-1">
-                            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                              {entry.restaurantName} • {entry.neighborhood}
-                            </p>
-                            <h3 className="mt-2 text-2xl font-semibold leading-tight md:text-[1.9rem]">
-                              {entry.menuItem.name}
-                            </h3>
-                            <p className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-sm text-muted-foreground">
-                              <span>{entry.menuItem.priceLabel}</span>
-                              <span>{entry.distanceMiles.toFixed(1)} miles away</span>
-                              <span>{entry.menuItem.safetyLevel}</span>
-                              <span>{entry.menuItem.prepTimeMinutes} min prep</span>
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span
-                              className={cn(
-                                "inline-flex rounded-full px-3 py-1 text-sm font-medium",
-                                entry.menuItem.status === "Verified Safe"
-                                  ? "bg-primary text-primary-foreground"
-                                  : "bg-secondary text-secondary-foreground"
-                              )}
-                            >
-                              {entry.menuItem.status}
-                            </span>
-                            <span className="rounded-full border bg-background p-2 text-muted-foreground">
-                              {selectedEntryId === entry.id ? (
-                                <ChevronUp className="h-4 w-4" />
-                              ) : (
-                                <ChevronDown className="h-4 w-4" />
-                              )}
-                            </span>
-                          </div>
-                        </div>
-
-                        <p className="mt-4 max-w-3xl text-sm leading-6 text-foreground/80">
-                          {entry.menuItem.rationale}
-                        </p>
-
-                        <div className="mt-4 flex flex-wrap gap-2">
-                          <CompactMetaPill
-                            icon={<ShieldCheck className="h-4 w-4" />}
-                            label={`${entry.menuItem.verificationBadges.length} trust badge${
-                              entry.menuItem.verificationBadges.length === 1 ? "" : "s"
-                            }`}
-                          />
-                          <CompactMetaPill
-                            icon={<Clock className="h-4 w-4" />}
-                            label={`${entry.menuItem.prepTimeMinutes} min`}
-                          />
-                          <CompactMetaPill
-                            icon={<MapPin className="h-4 w-4" />}
-                            label={`${entry.safeItemCount}/${entry.menuItemCount} safer picks`}
-                          />
-                        </div>
-
-                        <DietarySignalPills
-                          dietarySignals={entry.menuItem.dietaryAttributes}
-                          maxVisible={3}
-                        />
-
-                        <div className="mt-4 flex items-center justify-between gap-3 border-t border-border/70 pt-4">
-                          <p className="text-sm font-medium text-muted-foreground">
-                            {selectedEntryId === entry.id
-                              ? "Tap again to collapse details"
-                              : "Tap to open trust details and directions"}
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-xl font-bold tracking-tight text-foreground">
+                            {entry.restaurantName}
+                          </h3>
+                          <p className="mt-2 text-sm text-muted-foreground">
+                            {entry.address}
                           </p>
-                          <span className="text-sm font-semibold text-primary">
-                            {selectedEntryId === entry.id
-                              ? "Hide details"
-                              : "Show details"}
-                          </span>
                         </div>
-                      </button>
+                        <span className="inline-flex rounded-full bg-secondary px-3 py-1 text-sm font-medium text-secondary-foreground">
+                          {entry.distanceMiles.toFixed(1)} mi
+                        </span>
+                      </div>
+
+                      <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                        <SummaryCard
+                          icon={<Star className="h-4 w-4" />}
+                          label="Rating"
+                          value={entry.glutenSafetyRating.toFixed(1)}
+                        />
+                        <SummaryCard
+                          icon={<ShieldCheck className="h-4 w-4" />}
+                          label="Match"
+                          value={buildFeedMatchLabel(entry, activeFilter)}
+                        />
+                        <SummaryCard
+                          icon={<Users className="h-4 w-4" />}
+                          label="Signals"
+                          value={`${entry.menuItem.verificationBadges.length} trust badge${
+                            entry.menuItem.verificationBadges.length === 1 ? "" : "s"
+                          }`}
+                        />
+                      </div>
+
+                      <div className="mt-4">
+                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                          Dish match
+                        </p>
+                        <p className="mt-1 text-base font-semibold text-foreground/90">
+                          {entry.menuItem.name}
+                        </p>
+                      </div>
+
+                      <p className="mt-4 text-sm leading-6 text-muted-foreground">
+                        {buildFeedSupportingText(
+                          entry,
+                          activeFilterLabel,
+                          filteredFeedEntries.filter(
+                            (candidate) => candidate.restaurantSlug === entry.restaurantSlug
+                          ).length
+                        )}
+                      </p>
+
+                      <DietarySignalPills
+                        dietarySignals={entry.menuItem.dietaryAttributes}
+                        maxVisible={3}
+                      />
+
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <Button
+                          size="sm"
+                          type="button"
+                          onClick={() => toggleFeedEntry(entry.id)}
+                        >
+                          {selectedEntryId === entry.id ? "Hide details" : "Show details"}
+                        </Button>
+                        <a
+                          className={cn(
+                            buttonVariants({ variant: "outline", size: "sm" }),
+                            "gap-2 no-underline"
+                          )}
+                          href={getDirectionsLinks(entry).google}
+                          rel="noreferrer"
+                          target="_blank"
+                        >
+                          Google Maps
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                        <a
+                          className={cn(
+                            buttonVariants({ variant: "outline", size: "sm" }),
+                            "gap-2 no-underline"
+                          )}
+                          href={getDirectionsLinks(entry).apple}
+                          rel="noreferrer"
+                          target="_blank"
+                        >
+                          Apple Maps
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                      </div>
 
                       {selectedEntryId === entry.id ? (
                         <div className="mt-4 border-t border-border/80 pt-4">
@@ -396,8 +406,6 @@ export function HomePageClient({
                             </p>
                           </div>
                         </div>
-
-                          <ExpandedActionRow entry={entry} />
                         </div>
                       ) : null}
                     </article>
@@ -460,6 +468,28 @@ function FeedStatCard({
   );
 }
 
+function SummaryCard({
+  icon,
+  label,
+  value
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-[1.15rem] border bg-white/80 p-3">
+      <div className="flex items-center gap-2 text-muted-foreground">
+        {icon}
+        <span className="text-xs font-semibold uppercase tracking-[0.14em]">
+          {label}
+        </span>
+      </div>
+      <p className="mt-2 text-sm font-semibold text-foreground">{value}</p>
+    </div>
+  );
+}
+
 function VerificationPill({ badge }: { badge: VerificationBadge }) {
   const icon =
     badge === "Kitchen Certified" ? (
@@ -510,44 +540,61 @@ function DietarySignalPills({
   );
 }
 
-function CompactMetaPill({
-  icon,
-  label
-}: {
-  icon: ReactNode;
-  label: string;
-}) {
-  return (
-    <span className="inline-flex items-center gap-2 rounded-full border bg-background/80 px-3 py-1.5 text-xs font-semibold text-muted-foreground">
-      {icon}
-      <span className="truncate">{label}</span>
-    </span>
+function buildFeedMatchLabel(
+  entry: MealFeedEntry,
+  activeFilter: FeedBrowseFilter
+) {
+  const activeFilterConfig = feedBrowseFilters.find(
+    (filter) => filter.id === activeFilter
   );
+
+  if (
+    activeFilterConfig &&
+    "dietaryKey" in activeFilterConfig &&
+    activeFilterConfig.dietaryKey
+  ) {
+    return humanizeFeedDietaryKey(activeFilterConfig.dietaryKey);
+  }
+
+  const positiveSignals = entry.menuItem.dietaryAttributes
+    ? formatPositiveDietarySignals(entry.menuItem.dietaryAttributes)
+    : [];
+
+  return positiveSignals[0] ?? entry.menuItem.safetyLevel;
 }
 
-function ExpandedActionRow({ entry }: { entry: MealFeedEntry }) {
-  const directions = getDirectionsLinks(entry);
+function buildFeedSupportingText(
+  entry: MealFeedEntry,
+  activeFilterLabel: string,
+  restaurantMatchCount: number
+) {
+  const filterPhrase =
+    activeFilterLabel === "All Approved Picks"
+      ? restaurantMatchCount === 1
+        ? "approved pick"
+        : "approved picks"
+      : restaurantMatchCount === 1
+        ? activeFilterLabel.toLowerCase().replace(/s$/, "")
+        : activeFilterLabel.toLowerCase();
 
-  return (
-    <div className="mt-4 flex flex-wrap gap-3">
-      <a
-        href={directions.google}
-        target="_blank"
-        rel="noreferrer"
-        className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
-      >
-        Google Maps
-        <ExternalLink className="h-4 w-4" />
-      </a>
-      <a
-        href={directions.apple}
-        target="_blank"
-        rel="noreferrer"
-        className="inline-flex items-center gap-2 rounded-full border bg-background px-4 py-2 text-sm font-semibold text-foreground transition hover:border-primary hover:text-primary"
-      >
-        Apple Maps
-        <ExternalLink className="h-4 w-4" />
-      </a>
-    </div>
-  );
+  return `${restaurantMatchCount} ${filterPhrase} currently visible from the reviewed Tuscaloosa dataset.`;
+}
+
+function humanizeFeedDietaryKey(key: keyof NonNullable<MealFeedEntry["menuItem"]["dietaryAttributes"]>) {
+  switch (key) {
+    case "glutenFree":
+      return "Gluten-Free";
+    case "soyFree":
+      return "Soy-Free";
+    case "nutFree":
+      return "Nut-Free";
+    case "vegetarian":
+      return "Vegetarian";
+    case "pescatarian":
+      return "Pescatarian";
+    case "kosher":
+      return "Kosher";
+    case "halal":
+      return "Halal";
+  }
 }
