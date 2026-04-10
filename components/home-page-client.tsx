@@ -3,6 +3,10 @@
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
 import {
+  ChevronDown,
+  ChevronUp,
+  Clock,
+  ExternalLink,
   FlaskConical,
   MapPin,
   ShieldCheck,
@@ -15,6 +19,7 @@ import { SearchMapExplorer } from "@/components/search-map-explorer";
 import {
   buildMealFeedEntries,
   feedFilters,
+  getDirectionsLinks,
   matchesFeedFilter,
   type FeedFilter,
   type MealFeedEntry
@@ -39,9 +44,7 @@ export function HomePageClient({
 }: HomePageClientProps) {
   const allFeedEntries = buildMealFeedEntries(initialRestaurants);
   const [activeFilter, setActiveFilter] = useState<FeedFilter>("Safe To Start");
-  const [selectedEntryId, setSelectedEntryId] = useState(
-    allFeedEntries[0]?.id ?? ""
-  );
+  const [selectedEntryId, setSelectedEntryId] = useState("");
   const [visibleCount, setVisibleCount] = useState(FEED_BATCH_SIZE);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const feedEntryRefs = useRef<Map<string, HTMLDivElement>>(new Map());
@@ -60,10 +63,13 @@ export function HomePageClient({
   }, [activeFilter, initialRestaurants.length]);
 
   useEffect(() => {
-    if (!filteredFeedEntries.some((entry) => entry.id === selectedEntryId)) {
-      setSelectedEntryId(filteredFeedEntries[0]?.id ?? allFeedEntries[0]?.id ?? "");
+    if (
+      selectedEntryId &&
+      !filteredFeedEntries.some((entry) => entry.id === selectedEntryId)
+    ) {
+      setSelectedEntryId("");
     }
-  }, [allFeedEntries, filteredFeedEntries, selectedEntryId]);
+  }, [filteredFeedEntries, selectedEntryId]);
 
   useEffect(() => {
     if (!pendingJumpEntryId) {
@@ -129,6 +135,10 @@ export function HomePageClient({
     setVisibleCount(allFeedEntries.length);
     setSelectedEntryId(entryId);
     setPendingJumpEntryId(entryId);
+  }
+
+  function toggleFeedEntry(entryId: string) {
+    setSelectedEntryId((currentId) => (currentId === entryId ? "" : entryId));
   }
 
   return (
@@ -198,11 +208,12 @@ export function HomePageClient({
                   Infinite home feed
                 </p>
                 <h2 className="mt-2 text-2xl font-semibold">
-                  Keep scrolling through approved meal drops
+                  Browse approved meal drops faster
                 </h2>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  This stays social and browseable after the live map search,
-                  giving the app a discovery rhythm instead of a static directory feel.
+                  Each card now stays compact by default, so users can scan
+                  more meals quickly and only open the deeper trust details when
+                  they want them.
                 </p>
               </div>
               <span className="rounded-full border bg-background px-4 py-2 text-sm font-medium text-muted-foreground">
@@ -229,46 +240,39 @@ export function HomePageClient({
 
             {filteredFeedEntries.length > 0 ? (
               <div className="mt-5 space-y-4">
-                {visibleFeedEntries.map((entry, index) => (
+                {visibleFeedEntries.map((entry) => (
                   <div
                     key={entry.id}
                     ref={(element) => registerFeedEntryElement(entry.id, element)}
                   >
-                    <button
-                      type="button"
-                      onClick={() => setSelectedEntryId(entry.id)}
-                      className="w-full text-left"
+                    <article
+                      className={cn(
+                        "rounded-[1.8rem] border bg-white/95 p-4 shadow-[0_18px_42px_rgba(68,60,42,0.08)] transition",
+                        selectedEntryId === entry.id &&
+                          "border-primary ring-2 ring-primary/15"
+                      )}
                     >
-                      <article
-                        className={cn(
-                          "rounded-[2rem] border bg-white/90 p-4 shadow-[0_20px_50px_rgba(68,60,42,0.1)] transition hover:-translate-y-1",
-                          selectedEntryId === entry.id &&
-                            "border-primary ring-2 ring-primary/20"
-                        )}
+                      <button
+                        type="button"
+                        onClick={() => toggleFeedEntry(entry.id)}
+                        className="w-full text-left"
                       >
-                        <div
-                          className={cn(
-                            "rounded-[1.6rem] p-5",
-                            entry.menuItem.status === "Verified Safe"
-                              ? "bg-[linear-gradient(135deg,rgba(247,251,242,1)_0%,rgba(221,241,230,1)_100%)]"
-                              : "bg-[linear-gradient(135deg,rgba(255,247,239,1)_0%,rgba(244,228,213,1)_100%)]"
-                          )}
-                        >
-                          <div className="flex flex-wrap items-start justify-between gap-3">
-                            <div>
-                              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                                Meal drop {String(index + 1).padStart(2, "0")} •{" "}
-                                {entry.restaurantName}
-                              </p>
-                              <h3 className="mt-3 text-2xl font-semibold leading-tight md:text-3xl">
-                                {entry.menuItem.name}
-                              </h3>
-                              <p className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-sm text-muted-foreground">
-                                <span>{entry.menuItem.priceLabel}</span>
-                                <span>{entry.distanceMiles.toFixed(1)} miles away</span>
-                                <span>{entry.menuItem.safetyLevel}</span>
-                              </p>
-                            </div>
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                              {entry.restaurantName} • {entry.neighborhood}
+                            </p>
+                            <h3 className="mt-2 text-2xl font-semibold leading-tight md:text-[1.9rem]">
+                              {entry.menuItem.name}
+                            </h3>
+                            <p className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-sm text-muted-foreground">
+                              <span>{entry.menuItem.priceLabel}</span>
+                              <span>{entry.distanceMiles.toFixed(1)} miles away</span>
+                              <span>{entry.menuItem.safetyLevel}</span>
+                              <span>{entry.menuItem.prepTimeMinutes} min prep</span>
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
                             <span
                               className={cn(
                                 "inline-flex rounded-full px-3 py-1 text-sm font-medium",
@@ -279,15 +283,72 @@ export function HomePageClient({
                             >
                               {entry.menuItem.status}
                             </span>
+                            <span className="rounded-full border bg-background p-2 text-muted-foreground">
+                              {selectedEntryId === entry.id ? (
+                                <ChevronUp className="h-4 w-4" />
+                              ) : (
+                                <ChevronDown className="h-4 w-4" />
+                              )}
+                            </span>
                           </div>
+                        </div>
 
-                          <p className="mt-5 max-w-2xl text-sm leading-7 text-foreground/85">
+                        <p className="mt-4 max-w-3xl text-sm leading-6 text-foreground/80">
+                          {entry.menuItem.rationale}
+                        </p>
+
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          <CompactMetaPill
+                            icon={<ShieldCheck className="h-4 w-4" />}
+                            label={`${entry.menuItem.verificationBadges.length} trust badge${
+                              entry.menuItem.verificationBadges.length === 1 ? "" : "s"
+                            }`}
+                          />
+                          <CompactMetaPill
+                            icon={<Clock className="h-4 w-4" />}
+                            label={`${entry.menuItem.prepTimeMinutes} min`}
+                          />
+                          <CompactMetaPill
+                            icon={<MapPin className="h-4 w-4" />}
+                            label={`${entry.safeItemCount}/${entry.menuItemCount} safer picks`}
+                          />
+                        </div>
+
+                        <DietarySignalPills
+                          dietarySignals={entry.menuItem.dietaryAttributes}
+                          maxVisible={3}
+                        />
+
+                        <div className="mt-4 flex items-center justify-between gap-3 border-t border-border/70 pt-4">
+                          <p className="text-sm font-medium text-muted-foreground">
+                            {selectedEntryId === entry.id
+                              ? "Tap again to collapse details"
+                              : "Tap to open trust details and directions"}
+                          </p>
+                          <span className="text-sm font-semibold text-primary">
+                            {selectedEntryId === entry.id
+                              ? "Hide details"
+                              : "Show details"}
+                          </span>
+                        </div>
+                      </button>
+
+                      {selectedEntryId === entry.id ? (
+                        <div className="mt-4 border-t border-border/80 pt-4">
+                          <div
+                          className={cn(
+                            "rounded-[1.5rem] p-4",
+                            entry.menuItem.status === "Verified Safe"
+                              ? "bg-[linear-gradient(135deg,rgba(247,251,242,1)_0%,rgba(221,241,230,1)_100%)]"
+                              : "bg-[linear-gradient(135deg,rgba(255,247,239,1)_0%,rgba(244,228,213,1)_100%)]"
+                          )}
+                        >
+                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                            Safety note
+                          </p>
+                          <p className="mt-3 max-w-3xl text-sm leading-7 text-foreground/85">
                             {entry.menuItem.confidenceNote}
                           </p>
-
-                          <DietarySignalPills
-                            dietarySignals={entry.menuItem.dietaryAttributes}
-                          />
                         </div>
 
                         <div className="mt-4 grid gap-3 md:grid-cols-[1.15fr_0.85fr]">
@@ -321,8 +382,11 @@ export function HomePageClient({
                             </p>
                           </div>
                         </div>
-                      </article>
-                    </button>
+
+                          <ExpandedActionRow entry={entry} />
+                        </div>
+                      ) : null}
+                    </article>
                   </div>
                 ))}
 
@@ -332,12 +396,12 @@ export function HomePageClient({
                 >
                   <p className="text-sm font-semibold">
                     {filteredFeedEntries.length > visibleCount
-                      ? "Loading more meal cards as you scroll..."
+                      ? "Loading more compact meal cards as you scroll..."
                       : "You are caught up for now."}
                   </p>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">
                     {filteredFeedEntries.length > visibleCount
-                      ? "The feed will keep revealing more approved meals automatically."
+                      ? "The feed will keep revealing more approved meals automatically without opening the full detail layout every time."
                       : "We can keep adding richer sample items and real Supabase records to make this feed feel deeper."}
                   </p>
                 </div>
@@ -401,23 +465,26 @@ function VerificationPill({ badge }: { badge: VerificationBadge }) {
 }
 
 function DietarySignalPills({
-  dietarySignals
+  dietarySignals,
+  maxVisible
 }: {
   dietarySignals?: MealFeedEntry["menuItem"]["dietaryAttributes"];
+  maxVisible?: number;
 }) {
   if (!dietarySignals) {
     return null;
   }
 
   const labels = formatPositiveDietarySignals(dietarySignals);
+  const visibleLabels = maxVisible ? labels.slice(0, maxVisible) : labels;
 
-  if (labels.length === 0) {
+  if (visibleLabels.length === 0) {
     return null;
   }
 
   return (
     <div className="mt-4 flex flex-wrap gap-2">
-      {labels.map((label) => (
+      {visibleLabels.map((label) => (
         <span
           key={label}
           className="rounded-full border bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground"
@@ -425,6 +492,48 @@ function DietarySignalPills({
           {label}
         </span>
       ))}
+    </div>
+  );
+}
+
+function CompactMetaPill({
+  icon,
+  label
+}: {
+  icon: ReactNode;
+  label: string;
+}) {
+  return (
+    <span className="inline-flex items-center gap-2 rounded-full border bg-background/80 px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+      {icon}
+      <span className="truncate">{label}</span>
+    </span>
+  );
+}
+
+function ExpandedActionRow({ entry }: { entry: MealFeedEntry }) {
+  const directions = getDirectionsLinks(entry);
+
+  return (
+    <div className="mt-4 flex flex-wrap gap-3">
+      <a
+        href={directions.google}
+        target="_blank"
+        rel="noreferrer"
+        className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
+      >
+        Google Maps
+        <ExternalLink className="h-4 w-4" />
+      </a>
+      <a
+        href={directions.apple}
+        target="_blank"
+        rel="noreferrer"
+        className="inline-flex items-center gap-2 rounded-full border bg-background px-4 py-2 text-sm font-semibold text-foreground transition hover:border-primary hover:text-primary"
+      >
+        Apple Maps
+        <ExternalLink className="h-4 w-4" />
+      </a>
     </div>
   );
 }
