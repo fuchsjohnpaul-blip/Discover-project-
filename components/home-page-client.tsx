@@ -167,18 +167,6 @@ export function HomePageClient({
               <p className="text-[2rem] font-semibold tracking-tight text-foreground md:text-[2.5rem]">
                 Discover
               </p>
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                Discovery + accuracy
-              </p>
-              <h1 className="mt-3 text-4xl font-semibold tracking-tight md:text-6xl">
-                Find a nearby meal and watch the map stay perfectly in sync.
-              </h1>
-              <p className="mt-4 text-lg leading-8 text-muted-foreground">
-                The home tab now pairs a location-aware meal search with the
-                curated feed below, so users can move from a natural-language
-                request into synchronized pins, trusted result cards, and local
-                meal context without friction.
-              </p>
             </div>
 
             <div className="rounded-[1.75rem] border bg-[linear-gradient(135deg,rgba(252,244,236,0.98)_0%,rgba(242,230,216,0.98)_100%)] p-5 shadow-sm">
