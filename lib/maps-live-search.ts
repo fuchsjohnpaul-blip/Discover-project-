@@ -203,8 +203,8 @@ export function buildInfoWindowContent(result: LiveSearchResult) {
 
   return `<div style="padding: 4px 6px; max-width: 240px;">
     <div style="font-weight: 600; margin-bottom: 4px;">${escapeHtml(result.name)}</div>
-    <div style="font-size: 12px; color: #5b675f; margin-bottom: 4px;">${escapeHtml(result.address)}</div>
-    <div style="font-size: 12px; color: #2f5e49;">${escapeHtml(supportingLine)}</div>
+    <div style="font-size: 12px; color: #75645a; margin-bottom: 4px;">${escapeHtml(result.address)}</div>
+    <div style="font-size: 12px; color: #8f1830;">${escapeHtml(supportingLine)}</div>
   </div>`;
 }
 

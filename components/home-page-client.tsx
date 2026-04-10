@@ -178,7 +178,7 @@ export function HomePageClient({
               </p>
             </div>
 
-            <div className="rounded-[1.75rem] border bg-[linear-gradient(135deg,rgba(252,249,241,0.98)_0%,rgba(241,233,216,0.98)_100%)] p-5 shadow-sm">
+            <div className="rounded-[1.75rem] border bg-[linear-gradient(135deg,rgba(252,244,236,0.98)_0%,rgba(242,230,216,0.98)_100%)] p-5 shadow-sm">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                 Home snapshot
               </p>
@@ -226,7 +226,7 @@ export function HomePageClient({
               </span>
             </div>
 
-            <div className="mt-5 rounded-[1.5rem] border bg-[linear-gradient(135deg,rgba(252,249,241,0.98)_0%,rgba(245,238,227,0.95)_100%)] p-4 shadow-sm">
+            <div className="mt-5 rounded-[1.5rem] border bg-[linear-gradient(135deg,rgba(252,244,236,0.98)_0%,rgba(244,233,221,0.95)_100%)] p-4 shadow-sm">
               <div className="flex flex-wrap items-start gap-4">
                 <div className="min-w-[18rem] flex-1">
                   <div className="flex items-center gap-2 text-muted-foreground">
@@ -362,7 +362,7 @@ export function HomePageClient({
                           className={cn(
                             "rounded-[1.5rem] p-4",
                             entry.menuItem.status === "Verified Safe"
-                              ? "bg-[linear-gradient(135deg,rgba(247,251,242,1)_0%,rgba(221,241,230,1)_100%)]"
+                              ? "bg-[linear-gradient(135deg,rgba(252,240,241,1)_0%,rgba(244,221,225,1)_100%)]"
                               : "bg-[linear-gradient(135deg,rgba(255,247,239,1)_0%,rgba(244,228,213,1)_100%)]"
                           )}
                         >

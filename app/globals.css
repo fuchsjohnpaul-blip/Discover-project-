@@ -3,21 +3,21 @@
 @tailwind utilities;
 
 :root {
-  --background: 48 33% 97%;
-  --foreground: 158 30% 12%;
+  --background: 34 46% 96%;
+  --foreground: 14 24% 16%;
   --card: 0 0% 100%;
-  --card-foreground: 158 30% 12%;
-  --primary: 157 44% 31%;
-  --primary-foreground: 48 33% 97%;
-  --secondary: 42 65% 89%;
-  --secondary-foreground: 158 30% 12%;
-  --muted: 45 33% 92%;
-  --muted-foreground: 158 18% 35%;
-  --accent: 30 88% 90%;
-  --accent-foreground: 158 30% 12%;
-  --border: 38 24% 82%;
-  --input: 38 24% 82%;
-  --ring: 157 44% 31%;
+  --card-foreground: 14 24% 16%;
+  --primary: 350 71% 36%;
+  --primary-foreground: 34 46% 96%;
+  --secondary: 34 57% 88%;
+  --secondary-foreground: 14 24% 16%;
+  --muted: 32 36% 91%;
+  --muted-foreground: 17 18% 38%;
+  --accent: 18 58% 89%;
+  --accent-foreground: 14 24% 16%;
+  --border: 28 28% 80%;
+  --input: 28 28% 80%;
+  --ring: 350 71% 36%;
   --radius: 1rem;
   --font-sans: "Manrope";
 }
@@ -28,9 +28,9 @@
 
 body {
   background:
-    radial-gradient(circle at top left, rgba(244, 180, 76, 0.18), transparent 28%),
-    radial-gradient(circle at top right, rgba(48, 112, 87, 0.16), transparent 24%),
-    linear-gradient(180deg, #f9f5ea 0%, #f5efe2 100%);
+    radial-gradient(circle at top left, rgba(196, 154, 112, 0.22), transparent 28%),
+    radial-gradient(circle at top right, rgba(158, 27, 50, 0.16), transparent 24%),
+    linear-gradient(180deg, #faf3e8 0%, #f4e8d8 100%);
   color: hsl(var(--foreground));
   font-family: var(--font-sans), ui-sans-serif, system-ui;
   margin: 0;
@@ -43,7 +43,7 @@ a {
 
 .leaflet-container {
   font-family: var(--font-sans), ui-sans-serif, system-ui;
-  background: linear-gradient(180deg, #f7f2e8 0%, #efe6d3 100%);
+  background: linear-gradient(180deg, #f8efe2 0%, #ecdfcb 100%);
 }
 
 .leaflet-control-attribution {

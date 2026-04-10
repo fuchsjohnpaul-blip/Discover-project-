@@ -625,7 +625,7 @@ export function SearchMapExplorer({
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-[1.8rem] border bg-[linear-gradient(180deg,rgba(238,233,219,0.96)_0%,rgba(255,255,255,0.9)_100%)] p-4 shadow-[0_24px_64px_rgba(68,60,42,0.1)]">
+        <div className="overflow-hidden rounded-[1.8rem] border bg-[linear-gradient(180deg,rgba(243,232,221,0.96)_0%,rgba(255,251,247,0.92)_100%)] p-4 shadow-[0_24px_64px_rgba(68,60,42,0.1)]">
           <div className="flex items-center justify-between rounded-[1.4rem] bg-white/90 px-4 py-3 shadow-sm">
             <div>
               <p className="text-sm font-medium">Map view</p>
@@ -638,7 +638,7 @@ export function SearchMapExplorer({
             </span>
           </div>
 
-          <div className="relative mt-4 overflow-hidden rounded-[1.35rem] border bg-[#efe5cc]">
+          <div className="relative mt-4 overflow-hidden rounded-[1.35rem] border bg-[#ead8c2]">
             <div ref={mapRef} className="h-[26rem] w-full lg:h-[40rem]" />
             {mapStatus === "loading" ? (
               <MapOverlayCard message="Loading the OpenStreetMap view..." />
@@ -789,10 +789,10 @@ function getMarkerStyle(state: "default" | "hovered" | "selected") {
     weight: 2,
     fillColor:
       state === "selected"
-        ? "#2f6a52"
+        ? "#8f1830"
         : state === "hovered"
-          ? "#d68d31"
-          : "#4c8a6c",
+          ? "#c87b56"
+          : "#ae3043",
     fillOpacity: 1
   };
 }

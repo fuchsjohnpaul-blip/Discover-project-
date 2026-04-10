@@ -110,7 +110,7 @@ export function DietaryExpertChat({
     <div className="fixed bottom-4 right-4 z-[1200]">
       {isOpen ? (
         <section className="flex h-[min(44rem,calc(100vh-2rem))] w-[min(26rem,calc(100vw-1rem))] flex-col overflow-hidden rounded-[2rem] border bg-white/95 shadow-[0_30px_90px_rgba(40,34,23,0.22)] backdrop-blur">
-          <header className="border-b bg-[linear-gradient(135deg,rgba(245,250,244,0.98)_0%,rgba(232,243,235,0.98)_100%)] px-5 py-4">
+          <header className="border-b bg-[linear-gradient(135deg,rgba(252,240,241,0.98)_0%,rgba(244,227,230,0.98)_100%)] px-5 py-4">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-3">
                 <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
@@ -141,7 +141,7 @@ export function DietaryExpertChat({
             </div>
           </header>
 
-          <div className="flex-1 space-y-4 overflow-y-auto bg-[linear-gradient(180deg,rgba(253,251,245,0.92)_0%,rgba(255,255,255,0.96)_100%)] px-4 py-4">
+          <div className="flex-1 space-y-4 overflow-y-auto bg-[linear-gradient(180deg,rgba(252,246,239,0.94)_0%,rgba(255,252,249,0.96)_100%)] px-4 py-4">
             {turns.map((turn) => (
               <div
                 key={turn.id}
@@ -248,7 +248,7 @@ function AssistantResponseBody({
 }) {
   return (
     <div className="mt-3 space-y-3">
-      <div className="rounded-[1.2rem] border bg-[linear-gradient(135deg,rgba(246,250,244,1)_0%,rgba(233,241,236,1)_100%)] p-3">
+      <div className="rounded-[1.2rem] border bg-[linear-gradient(135deg,rgba(252,240,241,1)_0%,rgba(244,227,230,1)_100%)] p-3">
         <p className="text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">
           Trust boundary
         </p>
