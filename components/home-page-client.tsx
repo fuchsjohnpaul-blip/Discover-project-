@@ -164,6 +164,9 @@ export function HomePageClient({
 
           <div className="mt-6 grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
             <div className="max-w-3xl">
+              <p className="text-[2rem] font-semibold tracking-tight text-foreground md:text-[2.5rem]">
+                Discover
+              </p>
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                 Discovery + accuracy
               </p>
