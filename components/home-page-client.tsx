@@ -3,6 +3,7 @@
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
 import {
+  Filter,
   ChevronDown,
   ChevronUp,
   Clock,
@@ -18,10 +19,10 @@ import { DietaryExpertChat } from "@/components/dietary-expert-chat";
 import { SearchMapExplorer } from "@/components/search-map-explorer";
 import {
   buildMealFeedEntries,
-  feedFilters,
+  feedBrowseFilters,
   getDirectionsLinks,
-  matchesFeedFilter,
-  type FeedFilter,
+  matchesFeedBrowseFilter,
+  type FeedBrowseFilter,
   type MealFeedEntry
 } from "@/lib/meal-query";
 import {
@@ -43,7 +44,8 @@ export function HomePageClient({
   dataSource
 }: HomePageClientProps) {
   const allFeedEntries = buildMealFeedEntries(initialRestaurants);
-  const [activeFilter, setActiveFilter] = useState<FeedFilter>("Safe To Start");
+  const [activeFilter, setActiveFilter] =
+    useState<FeedBrowseFilter>("gluten-free-meals");
   const [selectedEntryId, setSelectedEntryId] = useState("");
   const [visibleCount, setVisibleCount] = useState(FEED_BATCH_SIZE);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
@@ -51,12 +53,15 @@ export function HomePageClient({
   const [pendingJumpEntryId, setPendingJumpEntryId] = useState("");
 
   const filteredFeedEntries = allFeedEntries.filter((entry) =>
-    matchesFeedFilter(entry, activeFilter)
+    matchesFeedBrowseFilter(entry, activeFilter)
   );
   const visibleFeedEntries = filteredFeedEntries.slice(0, visibleCount);
-  const safeFeedCount = filteredFeedEntries.filter(
+  const verifiedSafeCount = filteredFeedEntries.filter(
     (entry) => entry.menuItem.status === "Verified Safe"
   ).length;
+  const activeFilterLabel =
+    feedBrowseFilters.find((filter) => filter.id === activeFilter)?.label ??
+    "All Approved Picks";
 
   useEffect(() => {
     setVisibleCount(FEED_BATCH_SIZE);
@@ -131,7 +136,7 @@ export function HomePageClient({
   }
 
   function focusFeedEntry(entryId: string) {
-    setActiveFilter("All Meals");
+    setActiveFilter("all-approved-picks");
     setVisibleCount(allFeedEntries.length);
     setSelectedEntryId(entryId);
     setPendingJumpEntryId(entryId);
@@ -185,13 +190,13 @@ export function HomePageClient({
                 />
                 <FeedStatCard
                   icon={<ShieldCheck className="h-5 w-5" />}
-                  title={`${safeFeedCount} safer feed picks`}
-                  description="The curated feed still keeps verified-friendly meal options easy to browse underneath the live search layer."
+                  title={`${verifiedSafeCount} verified-safe picks`}
+                  description="Cards in the current dietary lane that still read as verified safe in the structured dataset."
                 />
                 <FeedStatCard
                   icon={<UtensilsCrossed className="h-5 w-5" />}
                   title={`${filteredFeedEntries.length} feed cards`}
-                  description="Approved meal cards continue to load as the user scrolls through the social-style home feed."
+                  description={`The feed is currently scoped to ${activeFilterLabel.toLowerCase()} for faster browsing.`}
                 />
               </div>
             </div>
@@ -208,34 +213,52 @@ export function HomePageClient({
                   Infinite home feed
                 </p>
                 <h2 className="mt-2 text-2xl font-semibold">
-                  Browse approved meal drops faster
+                  Browse approved food drops faster
                 </h2>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
                   Each card now stays compact by default, so users can scan
-                  more meals quickly and only open the deeper trust details when
-                  they want them.
+                  more meals or appetizers quickly and only open the deeper
+                  trust details when they want them.
                 </p>
               </div>
               <span className="rounded-full border bg-background px-4 py-2 text-sm font-medium text-muted-foreground">
-                {filteredFeedEntries.length} feed cards
+                {filteredFeedEntries.length} matching cards
               </span>
             </div>
 
-            <div className="mt-5 flex flex-wrap gap-3">
-              {feedFilters.map((filter) => (
-                <button
-                  key={filter}
-                  type="button"
-                  onClick={() => setActiveFilter(filter)}
-                  className={cn(
-                    "rounded-full border bg-background px-4 py-2 text-sm font-medium shadow-sm transition hover:border-primary hover:text-primary",
-                    activeFilter === filter &&
-                      "border-primary bg-primary text-primary-foreground hover:text-primary-foreground"
-                  )}
-                >
-                  {filter}
-                </button>
-              ))}
+            <div className="mt-5 rounded-[1.5rem] border bg-[linear-gradient(135deg,rgba(252,249,241,0.98)_0%,rgba(245,238,227,0.95)_100%)] p-4 shadow-sm">
+              <div className="flex flex-wrap items-start gap-4">
+                <div className="min-w-[18rem] flex-1">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Filter className="h-4 w-4" />
+                    <label
+                      htmlFor="feed-browse-filter"
+                      className="text-xs font-semibold uppercase tracking-[0.18em]"
+                    >
+                      Feed popup
+                    </label>
+                  </div>
+                  <select
+                    id="feed-browse-filter"
+                    value={activeFilter}
+                    onChange={(event) =>
+                      setActiveFilter(event.target.value as FeedBrowseFilter)
+                    }
+                    className="mt-3 h-11 w-full rounded-2xl border bg-white px-4 text-sm font-semibold text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  >
+                    {feedBrowseFilters.map((filter) => (
+                      <option key={filter.id} value={filter.id}>
+                        {filter.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="max-w-xl flex-1 text-sm leading-6 text-muted-foreground">
+                  This keeps the feed much cleaner by letting one popup control
+                  both the dietary lane and whether users are browsing meals or
+                  appetizers.
+                </div>
+              </div>
             </div>
 
             {filteredFeedEntries.length > 0 ? (
@@ -401,17 +424,17 @@ export function HomePageClient({
                   </p>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">
                     {filteredFeedEntries.length > visibleCount
-                      ? "The feed will keep revealing more approved meals automatically without opening the full detail layout every time."
-                      : "We can keep adding richer sample items and real Supabase records to make this feed feel deeper."}
+                      ? "The feed will keep revealing more approved picks automatically without opening the full detail layout every time."
+                      : `You are at the end of the ${activeFilterLabel.toLowerCase()} lane for now.`}
                   </p>
                 </div>
               </div>
             ) : (
               <div className="mt-5 rounded-[2rem] border border-dashed bg-white/70 p-8 text-center shadow-[0_20px_50px_rgba(68,60,42,0.08)]">
-                <p className="text-lg font-semibold">No meals match this feed yet</p>
+                <p className="text-lg font-semibold">No picks match this lane yet</p>
                 <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                  Try a broader filter and the home feed will refill with more
-                  approved options.
+                  Try a different dietary popup option and the home feed will
+                  refill with more approved options.
                 </p>
               </div>
             )}

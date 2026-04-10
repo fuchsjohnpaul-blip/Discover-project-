@@ -1,16 +1,85 @@
 import {
+  inferMenuCourseType,
+  type DietaryAttributes,
+  type MenuCourseType,
   type SampleRestaurant,
   type SafetyLevel,
   type VerificationBadge
 } from "@/lib/sample-data";
 
-export const feedFilters = [
-  "Safe To Start",
-  "Use Extra Caution",
-  "Kitchen Certified",
-  "Mixed Menus",
-  "All Meals"
-] as const;
+type FeedBrowseFilterConfig = {
+  id: string;
+  label: string;
+  dietaryKey?: keyof DietaryAttributes;
+  course?: MenuCourseType;
+};
+
+export const feedBrowseFilters = [
+  {
+    id: "all-approved-picks",
+    label: "All Approved Picks"
+  },
+  {
+    id: "gluten-free-meals",
+    label: "Gluten-Free Meals",
+    dietaryKey: "glutenFree",
+    course: "Meal"
+  },
+  {
+    id: "gluten-free-appetizers",
+    label: "Gluten-Free Appetizers",
+    dietaryKey: "glutenFree",
+    course: "Appetizer"
+  },
+  {
+    id: "soy-free-meals",
+    label: "Soy-Free Meals",
+    dietaryKey: "soyFree",
+    course: "Meal"
+  },
+  {
+    id: "soy-free-appetizers",
+    label: "Soy-Free Appetizers",
+    dietaryKey: "soyFree",
+    course: "Appetizer"
+  },
+  {
+    id: "nut-free-meals",
+    label: "Nut-Free Meals",
+    dietaryKey: "nutFree",
+    course: "Meal"
+  },
+  {
+    id: "nut-free-appetizers",
+    label: "Nut-Free Appetizers",
+    dietaryKey: "nutFree",
+    course: "Appetizer"
+  },
+  {
+    id: "kosher-meals",
+    label: "Kosher Meals",
+    dietaryKey: "kosher",
+    course: "Meal"
+  },
+  {
+    id: "kosher-appetizers",
+    label: "Kosher Appetizers",
+    dietaryKey: "kosher",
+    course: "Appetizer"
+  },
+  {
+    id: "halal-meals",
+    label: "Halal Meals",
+    dietaryKey: "halal",
+    course: "Meal"
+  },
+  {
+    id: "halal-appetizers",
+    label: "Halal Appetizers",
+    dietaryKey: "halal",
+    course: "Appetizer"
+  }
+] as const satisfies readonly FeedBrowseFilterConfig[];
 
 export const assistantResultViews = [
   "Top Rated",
@@ -36,7 +105,7 @@ export const assistantSuggestions = [
   }
 ] as const;
 
-export type FeedFilter = (typeof feedFilters)[number];
+export type FeedBrowseFilter = (typeof feedBrowseFilters)[number]["id"];
 export type AssistantResultView = (typeof assistantResultViews)[number];
 
 export type MealFeedEntry = {
@@ -168,22 +237,29 @@ export function buildMealFeedEntries(
     });
 }
 
-export function matchesFeedFilter(
+export function matchesFeedBrowseFilter(
   entry: MealFeedEntry,
-  activeFilter: FeedFilter
+  activeFilter: FeedBrowseFilter
 ) {
-  switch (activeFilter) {
-    case "Safe To Start":
-      return entry.menuItem.status === "Verified Safe";
-    case "Use Extra Caution":
-      return entry.menuItem.status !== "Verified Safe";
-    case "Kitchen Certified":
-      return entry.menuItem.verificationBadges.includes("Kitchen Certified");
-    case "Mixed Menus":
-      return entry.safeItemCount > 0 && entry.safeItemCount < entry.menuItemCount;
-    default:
-      return true;
+  const filterConfig = feedBrowseFilters.find((filter) => filter.id === activeFilter);
+
+  if (
+    !filterConfig ||
+    !("dietaryKey" in filterConfig) ||
+    !filterConfig.dietaryKey
+  ) {
+    return true;
   }
+
+  if (entry.menuItem.dietaryAttributes?.[filterConfig.dietaryKey] !== "yes") {
+    return false;
+  }
+
+  if (!("course" in filterConfig) || !filterConfig.course) {
+    return true;
+  }
+
+  return inferMenuCourseType(entry.menuItem) === filterConfig.course;
 }
 
 export function runAssistantQuery(
