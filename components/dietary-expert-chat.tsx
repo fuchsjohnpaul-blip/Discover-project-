@@ -97,7 +97,7 @@ export function DietaryExpertChat({
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
+    <div className="fixed bottom-4 right-4 z-[1200]">
       {isOpen ? (
         <section className="flex h-[min(44rem,calc(100vh-2rem))] w-[min(26rem,calc(100vw-1rem))] flex-col overflow-hidden rounded-[2rem] border bg-white/95 shadow-[0_30px_90px_rgba(40,34,23,0.22)] backdrop-blur">
           <header className="border-b bg-[linear-gradient(135deg,rgba(245,250,244,0.98)_0%,rgba(232,243,235,0.98)_100%)] px-5 py-4">
