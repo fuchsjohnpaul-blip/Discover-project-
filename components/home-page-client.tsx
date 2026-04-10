@@ -7,6 +7,7 @@ import {
   ExternalLink,
   FlaskConical,
   MapPin,
+  Sparkles,
   Star,
   ShieldCheck,
   Users,
@@ -162,10 +163,43 @@ export function HomePageClient({
           </div>
 
           <div className="mt-6 grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
-            <div className="max-w-3xl">
-              <p className="text-[2rem] font-semibold tracking-tight text-foreground md:text-[2.5rem]">
-                Discover
-              </p>
+            <div className="relative overflow-hidden rounded-[1.75rem] border bg-[linear-gradient(135deg,rgba(255,249,242,0.98)_0%,rgba(248,237,227,0.98)_100%)] p-6 shadow-sm">
+              <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top,rgba(143,24,48,0.14),transparent_58%)]" />
+              <div className="absolute -left-8 top-10 h-32 w-32 rounded-full bg-[radial-gradient(circle,rgba(200,123,86,0.18),transparent_70%)]" />
+              <div className="absolute bottom-10 right-10 hidden h-36 w-36 rounded-[2rem] border border-white/70 bg-white/35 shadow-[0_18px_42px_rgba(88,62,45,0.08)] backdrop-blur md:block" />
+              <div className="absolute bottom-16 right-16 hidden h-4 w-4 rounded-full bg-primary/90 shadow-[0_0_0_8px_rgba(143,24,48,0.12)] md:block" />
+              <div className="absolute right-28 top-16 hidden h-3 w-3 rounded-full bg-[#c87b56] shadow-[0_0_0_6px_rgba(200,123,86,0.14)] md:block" />
+              <div className="absolute bottom-24 right-28 hidden h-3 w-3 rounded-full bg-primary/80 shadow-[0_0_0_6px_rgba(143,24,48,0.12)] md:block" />
+
+              <div className="relative max-w-2xl">
+                <div className="inline-flex items-center gap-2 rounded-full border bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground shadow-sm">
+                  <Sparkles className="h-3.5 w-3.5 text-primary" />
+                  Trusted local dining
+                </div>
+                <p className="mt-5 text-[2.8rem] font-semibold tracking-tight text-foreground md:text-[4.6rem]">
+                  Discover
+                </p>
+                <p className="mt-4 max-w-xl text-lg leading-8 text-muted-foreground md:text-[1.2rem]">
+                  Dietary-safe dining, made easier to trust.
+                </p>
+
+                <div className="mt-6 flex flex-wrap gap-3">
+                  {["Gluten-Free", "Nut-Free", "Vegetarian"].map((label) => (
+                    <span
+                      key={label}
+                      className="rounded-full border bg-white/85 px-4 py-2 text-sm font-semibold text-foreground shadow-sm"
+                    >
+                      {label}
+                    </span>
+                  ))}
+                </div>
+
+                <p className="mt-6 max-w-xl text-sm leading-7 text-muted-foreground">
+                  Built for people who want a calmer way to browse nearby meals,
+                  compare trust signals, and move from search to a confident
+                  dining choice.
+                </p>
+              </div>
             </div>
 
             <div className="rounded-[1.75rem] border bg-[linear-gradient(135deg,rgba(252,244,236,0.98)_0%,rgba(242,230,216,0.98)_100%)] p-5 shadow-sm">
