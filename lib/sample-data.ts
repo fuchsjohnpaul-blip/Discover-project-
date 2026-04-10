@@ -24,6 +24,8 @@ export type DietaryAttributes = {
   nutFree: DietaryFlagValue;
   kosher: DietaryFlagValue;
   halal: DietaryFlagValue;
+  vegetarian: DietaryFlagValue;
+  pescatarian: DietaryFlagValue;
 };
 
 export type SampleMenuItem = {
@@ -459,12 +461,16 @@ function buildImportedMenuItem(
     notes,
     lastVerified
   ] = meal;
-  const dietaryAttributes: DietaryAttributes = {
+  const baseDietaryAttributes = {
     glutenFree: dietaryFlags[0],
     soyFree: dietaryFlags[1],
     nutFree: dietaryFlags[2],
     kosher: dietaryFlags[3],
     halal: dietaryFlags[4]
+  };
+  const dietaryAttributes: DietaryAttributes = {
+    ...baseDietaryAttributes,
+    ...inferLifestyleDietaryAttributes(dishName)
   };
   const status = getImportedStatus(dietaryAttributes.glutenFree);
   const confidenceNote = notes ?? buildConfidenceNote({
@@ -725,7 +731,159 @@ function inferSearchTags(
     tagSet.add("halal");
   }
 
+  if (dietaryAttributes.vegetarian === "yes") {
+    tagSet.add("vegetarian");
+    tagSet.add("veggie");
+  }
+
+  if (
+    dietaryAttributes.pescatarian === "yes" &&
+    dietaryAttributes.vegetarian !== "yes"
+  ) {
+    tagSet.add("pescatarian");
+    tagSet.add("seafood-friendly");
+  }
+
   return Array.from(tagSet);
+}
+
+function inferLifestyleDietaryAttributes(
+  dishName: string
+): Pick<DietaryAttributes, "vegetarian" | "pescatarian"> {
+  const normalizedDishName = normalizeText(dishName);
+  const explicitVegetarianKeywords = [
+    "black bean burger",
+    "veggie burger",
+    "veggie plate",
+    "house salad",
+    "strawberry salad",
+    "spinach salad",
+    "greek salad",
+    "wedge salad",
+    "caesar salad",
+    "farm salad",
+    "southern caesar",
+    "farro bowl",
+    "rice pudding",
+    "baklava",
+    "hummus",
+    "baba ghanoush",
+    "stuffed mushrooms",
+    "street corn dip",
+    "mozzarella sticks",
+    "cheese fries",
+    "rice"
+  ];
+  const landMeatKeywords = [
+    "beef",
+    "brisket",
+    "pork",
+    "bacon",
+    "ham",
+    "chicken",
+    "steak",
+    "ribeye",
+    "meatloaf",
+    "meatball",
+    "meatballs",
+    "veal",
+    "lamb",
+    "duck",
+    "rabbit",
+    "turkey",
+    "sausage",
+    "pepperoni",
+    "pulled pork",
+    "bbq",
+    "barbecue",
+    "ribs",
+    "philly",
+    "hot dog",
+    "gizzard",
+    "pork chops",
+    "short rib",
+    "burger",
+    "gyro"
+  ];
+  const seafoodKeywords = [
+    "fish",
+    "salmon",
+    "shrimp",
+    "tuna",
+    "tilapia",
+    "catfish",
+    "crab",
+    "lobster",
+    "grouper",
+    "scampi",
+    "seafood",
+    "poke",
+    "oyster"
+  ];
+  const likelyVegetarianKeywords = [
+    "salad",
+    "veggie",
+    "vegetable",
+    "hummus",
+    "baba ghanoush",
+    "rice",
+    "pudding",
+    "baklava",
+    "fries",
+    "mozzarella",
+    "caprese",
+    "cauliflower",
+    "farro",
+    "mushroom",
+    "pancakes",
+    "dessert",
+    "sweet"
+  ];
+
+  if (
+    explicitVegetarianKeywords.some((keyword) =>
+      normalizedDishName.includes(keyword)
+    )
+  ) {
+    return {
+      vegetarian: "yes",
+      pescatarian: "yes"
+    };
+  }
+
+  if (
+    landMeatKeywords.some((keyword) => normalizedDishName.includes(keyword))
+  ) {
+    return {
+      vegetarian: "no",
+      pescatarian: "no"
+    };
+  }
+
+  if (
+    seafoodKeywords.some((keyword) => normalizedDishName.includes(keyword))
+  ) {
+    return {
+      vegetarian: "no",
+      pescatarian: "yes"
+    };
+  }
+
+  if (
+    likelyVegetarianKeywords.some((keyword) =>
+      normalizedDishName.includes(keyword)
+    )
+  ) {
+    return {
+      vegetarian: "yes",
+      pescatarian: "yes"
+    };
+  }
+
+  return {
+    vegetarian: "unknown",
+    pescatarian: "unknown"
+  };
 }
 
 function deriveRestaurantCategory(menuItems: SampleMenuItem[]) {
@@ -972,6 +1130,17 @@ export function formatPositiveDietarySignals(
 
   if (dietaryAttributes.halal === "yes") {
     signals.push("Halal");
+  }
+
+  if (dietaryAttributes.vegetarian === "yes") {
+    signals.push("Vegetarian");
+  }
+
+  if (
+    dietaryAttributes.pescatarian === "yes" &&
+    dietaryAttributes.vegetarian !== "yes"
+  ) {
+    signals.push("Pescatarian");
   }
 
   return signals;

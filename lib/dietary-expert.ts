@@ -3,6 +3,8 @@ import { type DietaryAttributes, type VerificationBadge } from "@/lib/sample-dat
 
 export const dietaryExpertSuggestions = [
   "Show me nut-free dishes near me",
+  "Find vegetarian appetizers near me",
+  "Show me pescatarian meals near me",
   "Find the safest gluten-free lunch near me",
   "Show me halal seafood options",
   "Find soy-free salads with the strongest safety signals"
@@ -210,6 +212,17 @@ function getDietaryFilters(normalizedQuery: string): DietaryFilter[] {
     filters.push("nutFree");
   }
 
+  if (
+    normalizedQuery.includes("vegetarian") ||
+    normalizedQuery.includes("veggie")
+  ) {
+    filters.push("vegetarian");
+  }
+
+  if (normalizedQuery.includes("pescatarian")) {
+    filters.push("pescatarian");
+  }
+
   if (normalizedQuery.includes("kosher")) {
     filters.push("kosher");
   }
@@ -392,6 +405,14 @@ function buildCaution(intent: ExpertIntent) {
     return "Even for gluten-free matches, shared prep surfaces and fryer cross-contact can still matter, so strict users should confirm kitchen handling.";
   }
 
+  if (intent.dietaryFilters.includes("vegetarian")) {
+    return "Vegetarian here is inferred from the stored dish names and tags unless the current meal record states it more directly, so ingredient details should still be confirmed for strict needs.";
+  }
+
+  if (intent.dietaryFilters.includes("pescatarian")) {
+    return "Pescatarian here is inferred from the current dish names and tags, so it works as a strong browse filter but should still be confirmed if your standards are strict.";
+  }
+
   if (
     intent.dietaryFilters.includes("kosher") ||
     intent.dietaryFilters.includes("halal")
@@ -410,6 +431,10 @@ function humanizeDietaryFilter(filter: DietaryFilter) {
       return "Soy-Free";
     case "nutFree":
       return "Nut-Free";
+    case "vegetarian":
+      return "Vegetarian";
+    case "pescatarian":
+      return "Pescatarian";
     case "kosher":
       return "Kosher";
     case "halal":

@@ -400,6 +400,17 @@ function getDietaryFilters(normalizedQuery: string): DietaryFilter[] {
     filters.push("nutFree");
   }
 
+  if (
+    normalizedQuery.includes("vegetarian") ||
+    normalizedQuery.includes("veggie")
+  ) {
+    filters.push("vegetarian");
+  }
+
+  if (normalizedQuery.includes("pescatarian")) {
+    filters.push("pescatarian");
+  }
+
   if (normalizedQuery.includes("kosher")) {
     filters.push("kosher");
   }
@@ -419,6 +430,10 @@ function humanizeDietaryFilter(filter: DietaryFilter) {
       return "Soy-Free";
     case "nutFree":
       return "Nut-Free";
+    case "vegetarian":
+      return "Vegetarian";
+    case "pescatarian":
+      return "Pescatarian";
     case "kosher":
       return "Kosher";
     case "halal":

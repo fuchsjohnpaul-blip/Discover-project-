@@ -205,7 +205,7 @@ export function DietaryExpertChat({
                 id="dietary-expert-query"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Ask about nut-free, soy-free, kosher, halal, or the safest current meals."
+                placeholder="Ask about vegetarian, pescatarian, nut-free, soy-free, kosher, halal, or the safest current meals."
                 rows={2}
                 className="min-h-[3.25rem] flex-1 resize-none rounded-[1.3rem] border bg-background px-4 py-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
               />

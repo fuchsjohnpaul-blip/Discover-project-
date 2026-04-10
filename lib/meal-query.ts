@@ -56,6 +56,30 @@ export const feedBrowseFilters = [
     course: "Appetizer"
   },
   {
+    id: "vegetarian-meals",
+    label: "Vegetarian Meals",
+    dietaryKey: "vegetarian",
+    course: "Meal"
+  },
+  {
+    id: "vegetarian-appetizers",
+    label: "Vegetarian Appetizers",
+    dietaryKey: "vegetarian",
+    course: "Appetizer"
+  },
+  {
+    id: "pescatarian-meals",
+    label: "Pescatarian Meals",
+    dietaryKey: "pescatarian",
+    course: "Meal"
+  },
+  {
+    id: "pescatarian-appetizers",
+    label: "Pescatarian Appetizers",
+    dietaryKey: "pescatarian",
+    course: "Appetizer"
+  },
+  {
     id: "kosher-meals",
     label: "Kosher Meals",
     dietaryKey: "kosher",
