@@ -284,7 +284,7 @@ export function SearchMapExplorer({
       setSelectedResultId("");
       setSearchStatus("no_results");
       setStatusMessage(
-        "No approved matches were found for that search yet. Try a broader phrase like gluten-free meal near me."
+        "No approved matches were found for that search yet. Try a broader phrase like nut-free meals near me or gluten-free barbecue in Tuscaloosa."
       );
       return;
     }
@@ -292,7 +292,9 @@ export function SearchMapExplorer({
     setResults(normalizedResults);
     setSelectedResultId(normalizedResults[0]?.id ?? "");
     setSearchStatus("ready");
-    setStatusMessage(buildStatusMessage(searchResponse, normalizedResults.length));
+    setStatusMessage(
+      buildStatusMessage(searchResponse, normalizedResults.length, intent)
+    );
   }
 
   function focusResult(
@@ -485,8 +487,8 @@ export function SearchMapExplorer({
                       />
                       <SummaryCard
                         icon={<ShieldCheck className="h-4 w-4" />}
-                        label="Safety"
-                        value={result.safetyLevel}
+                        label="Match"
+                        value={result.matchLabel}
                       />
                       <SummaryCard
                         icon={<Users className="h-4 w-4" />}
@@ -701,17 +703,22 @@ function getMarkerStyle(state: "default" | "hovered" | "selected") {
 
 function buildStatusMessage(
   searchResponse: CuratedSearchResponse,
-  resultCount: number
+  resultCount: number,
+  intent: ReturnType<typeof parseLiveSearchIntent>
 ) {
+  const dietaryPhrase = intent.dietaryTag
+    ? `${intent.dietaryTag.toLowerCase()} `
+    : "";
+
   if (searchResponse.matchMode === "exact") {
-    return `Showing ${resultCount} approved result${
+    return `Showing ${resultCount} approved ${dietaryPhrase}result${
       resultCount === 1 ? "" : "s"
     } from the reviewed Tuscaloosa dataset.`;
   }
 
   if (searchResponse.matchMode === "fallback") {
-    return "No exact keyword match was available, so the map is showing the closest approved Tuscaloosa meals with the strongest current safety signals.";
+    return `No exact keyword match was available, so the map is showing the closest approved Tuscaloosa ${dietaryPhrase}meals with the strongest current signals.`;
   }
 
-  return "Showing the strongest approved Tuscaloosa meals from the reviewed local dataset.";
+  return `Showing the strongest approved Tuscaloosa ${dietaryPhrase}meals from the reviewed local dataset.`;
 }

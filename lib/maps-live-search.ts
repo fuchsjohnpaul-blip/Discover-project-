@@ -1,4 +1,5 @@
 import {
+  type DietaryAttributes,
   type SampleMenuItem,
   type SampleRestaurant,
   type SafetyLevel,
@@ -20,6 +21,7 @@ export type SearchLocation = {
 export type LiveSearchIntent = {
   rawQuery: string;
   dietaryTag: string | null;
+  dietaryFilters: DietaryFilter[];
   keywords: string[];
   certification: "verified" | "user_vetted" | "lab_tested" | null;
   nearMe: boolean;
@@ -42,6 +44,7 @@ export type LiveSearchResult = {
   matchedMenuItems: SampleMenuItem[];
   badges: VerificationBadge[];
   safetyLevel: SafetyLevel | "Live Place";
+  matchLabel: string;
   supportingText: string;
 };
 
@@ -61,6 +64,8 @@ const keywordGroups = [
   ["dessert", "bakery", "sweet"]
 ];
 
+type DietaryFilter = keyof DietaryAttributes;
+
 export function parseLiveSearchIntent(query: string): LiveSearchIntent {
   const normalizedQuery = query.toLowerCase();
   const keywords = keywordGroups
@@ -68,16 +73,15 @@ export function parseLiveSearchIntent(query: string): LiveSearchIntent {
       group.filter((keyword) => normalizedQuery.includes(keyword))
     )
     .filter((keyword, index, values) => values.indexOf(keyword) === index);
+  const dietaryFilters = getDietaryFilters(normalizedQuery);
 
   return {
     rawQuery: query.trim() || DEFAULT_LIVE_SEARCH_QUERY,
     dietaryTag:
-      normalizedQuery.includes("gluten-free") ||
-      normalizedQuery.includes("gluten free") ||
-      normalizedQuery.includes("gf") ||
-      normalizedQuery.includes("celiac")
-        ? "gluten free"
+      dietaryFilters.length > 0
+        ? dietaryFilters.map((filter) => humanizeDietaryFilter(filter)).join(", ")
         : null,
+    dietaryFilters,
     keywords,
     certification: normalizedQuery.includes("user vetted")
       ? "user_vetted"
@@ -224,8 +228,11 @@ function buildCuratedResult({
   const badges = Array.from(
     new Set(matchedMenuItems.flatMap((item) => item.verificationBadges))
   );
-  const safetyLevel =
-    matchedMenuItems[0]?.safetyLevel ?? "Gluten-Friendly";
+  const safetyLevel = matchedMenuItems[0]?.safetyLevel ?? "Gluten-Friendly";
+  const matchLabel = getMatchLabel(intent, matchedMenuItems);
+  const dietarySummary = intent.dietaryFilters.length
+    ? `${matchLabel.toLowerCase()} `
+    : "";
 
   return {
     id: `curated-${restaurant.slug}`,
@@ -247,14 +254,15 @@ function buildCuratedResult({
     matchedMenuItems,
     badges,
     safetyLevel,
+    matchLabel,
     supportingText:
       mode === "exact"
-        ? `${matchedMenuItems.length} approved meal match${
+        ? `${matchedMenuItems.length} approved ${dietarySummary}meal match${
             matchedMenuItems.length === 1 ? "" : "es"
           } from the reviewed Tuscaloosa dataset.`
         : mode === "fallback"
-          ? "No exact keyword match was available, so this result shows the closest approved gluten-friendly meals from our reviewed Tuscaloosa dataset."
-          : "Showing trusted approved meals from the reviewed Tuscaloosa dataset."
+          ? `No exact keyword match was available, so this result shows the closest approved ${dietarySummary}meals from our reviewed Tuscaloosa dataset.`
+          : `Showing trusted approved ${dietarySummary}meals from the reviewed Tuscaloosa dataset.`
   };
 }
 
@@ -263,24 +271,24 @@ function findMatchedMenuItems(
   intent: LiveSearchIntent,
   mode: "exact" | "fallback" | "broad"
 ) {
-  const safeItems = restaurant.menuItems.filter(
-    (item) => item.status === "Verified Safe"
+  const matchingDietaryItems = restaurant.menuItems.filter((item) =>
+    matchesDietaryFilters(item, intent.dietaryFilters)
   );
 
-  if (safeItems.length === 0) {
+  if (matchingDietaryItems.length === 0) {
     return [];
   }
 
   const keywordMatches =
     intent.keywords.length > 0
-      ? safeItems.filter((item) => {
+      ? matchingDietaryItems.filter((item) => {
           const searchText = [item.name, restaurant.name, ...item.searchTags]
             .join(" ")
             .toLowerCase();
 
           return intent.keywords.some((keyword) => searchText.includes(keyword));
         })
-      : safeItems;
+      : matchingDietaryItems;
 
   const certifiedMatches = applyCertificationFilter(keywordMatches, intent);
 
@@ -297,7 +305,10 @@ function findMatchedMenuItems(
   }
 
   if (mode === "fallback") {
-    const certificationOnlyMatches = applyCertificationFilter(safeItems, intent);
+    const certificationOnlyMatches = applyCertificationFilter(
+      matchingDietaryItems,
+      intent
+    );
 
     if (certificationOnlyMatches.length > 0) {
       return certificationOnlyMatches;
@@ -310,7 +321,7 @@ function findMatchedMenuItems(
     return [];
   }
 
-  return safeItems;
+  return matchingDietaryItems;
 }
 
 function applyCertificationFilter(
@@ -361,4 +372,89 @@ function escapeHtml(value: string) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function getDietaryFilters(normalizedQuery: string): DietaryFilter[] {
+  const filters: DietaryFilter[] = [];
+
+  if (
+    normalizedQuery.includes("gluten-free") ||
+    normalizedQuery.includes("gluten free") ||
+    normalizedQuery.includes("gf") ||
+    normalizedQuery.includes("celiac")
+  ) {
+    filters.push("glutenFree");
+  }
+
+  if (
+    normalizedQuery.includes("soy-free") ||
+    normalizedQuery.includes("soy free")
+  ) {
+    filters.push("soyFree");
+  }
+
+  if (
+    normalizedQuery.includes("nut-free") ||
+    normalizedQuery.includes("nut free")
+  ) {
+    filters.push("nutFree");
+  }
+
+  if (normalizedQuery.includes("kosher")) {
+    filters.push("kosher");
+  }
+
+  if (normalizedQuery.includes("halal")) {
+    filters.push("halal");
+  }
+
+  return filters;
+}
+
+function humanizeDietaryFilter(filter: DietaryFilter) {
+  switch (filter) {
+    case "glutenFree":
+      return "Gluten-Free";
+    case "soyFree":
+      return "Soy-Free";
+    case "nutFree":
+      return "Nut-Free";
+    case "kosher":
+      return "Kosher";
+    case "halal":
+      return "Halal";
+  }
+}
+
+function matchesDietaryFilters(
+  item: SampleMenuItem,
+  dietaryFilters: DietaryFilter[]
+) {
+  if (dietaryFilters.length === 0) {
+    return item.status === "Verified Safe";
+  }
+
+  return dietaryFilters.every((filter) => {
+    if (filter === "glutenFree") {
+      return (
+        item.dietaryAttributes?.glutenFree === "yes" ||
+        item.status === "Verified Safe"
+      );
+    }
+
+    return item.dietaryAttributes?.[filter] === "yes";
+  });
+}
+
+function getMatchLabel(
+  intent: LiveSearchIntent,
+  matchedMenuItems: SampleMenuItem[]
+) {
+  if (intent.dietaryFilters.length === 0) {
+    return matchedMenuItems[0]?.safetyLevel ?? "Approved Match";
+  }
+
+  return intent.dietaryFilters
+    .map((filter) => humanizeDietaryFilter(filter))
+    .join(" + ");
 }
