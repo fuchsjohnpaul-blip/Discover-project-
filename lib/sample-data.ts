@@ -1,3 +1,11 @@
+import {
+  importedRestaurantBatches,
+  type DietaryFlagValue,
+  type ImportedConfidenceLevel,
+  type ImportedRestaurantBatch,
+  type ImportedSourceType
+} from "@/lib/imported-restaurant-batches";
+
 export type VerificationBadge =
   | "Kitchen Certified"
   | "User Vetted"
@@ -7,6 +15,14 @@ export type SafetyLevel =
   | "Celiac-Safer"
   | "Gluten-Friendly"
   | "Contains Gluten";
+
+export type DietaryAttributes = {
+  glutenFree: DietaryFlagValue;
+  soyFree: DietaryFlagValue;
+  nutFree: DietaryFlagValue;
+  kosher: DietaryFlagValue;
+  halal: DietaryFlagValue;
+};
 
 export type SampleMenuItem = {
   name: string;
@@ -22,6 +38,10 @@ export type SampleMenuItem = {
   searchTags: string[];
   verificationBadges: VerificationBadge[];
   safetyLevel: SafetyLevel;
+  dietaryAttributes?: DietaryAttributes;
+  confidenceLevel?: ImportedConfidenceLevel;
+  sourceType?: ImportedSourceType;
+  lastVerified?: string;
 };
 
 export type SampleRestaurant = {
@@ -40,7 +60,12 @@ export type SampleRestaurant = {
   dataSource?: "supabase" | "sample";
 };
 
-export const sampleRestaurants: SampleRestaurant[] = [
+const TUSCALOOSA_CENTER = {
+  latitude: 33.2098,
+  longitude: -87.5692
+};
+
+const baseSampleRestaurants: SampleRestaurant[] = [
   {
     slug: "jim-n-nicks-bbq",
     name: "Jim 'N Nick's Bar-B-Q",
@@ -348,3 +373,604 @@ export const sampleRestaurants: SampleRestaurant[] = [
     dataSource: "sample"
   }
 ];
+
+export const sampleRestaurants: SampleRestaurant[] = mergeImportedRestaurantBatches(
+  baseSampleRestaurants,
+  importedRestaurantBatches
+);
+
+function mergeImportedRestaurantBatches(
+  baseRestaurants: SampleRestaurant[],
+  importedBatches: ImportedRestaurantBatch[]
+) {
+  const mergedRestaurants = [...baseRestaurants];
+  const baseIndexByAddressKey = new Map<string, number>();
+
+  mergedRestaurants.forEach((restaurant, index) => {
+    baseIndexByAddressKey.set(getFullAddressKey(restaurant.address), index);
+  });
+
+  importedBatches.forEach((batch) => {
+    const importedRestaurant = buildRestaurantFromImportedBatch(batch);
+    const existingRestaurantIndex = baseIndexByAddressKey.get(
+      getAddressKey(batch.address, batch.city, batch.state)
+    );
+
+    if (existingRestaurantIndex === undefined) {
+      mergedRestaurants.push(importedRestaurant);
+      return;
+    }
+
+    const existingRestaurant = mergedRestaurants[existingRestaurantIndex];
+    const mergedMenuItems = mergeMenuItems(
+      existingRestaurant.menuItems,
+      importedRestaurant.menuItems
+    );
+
+    mergedRestaurants[existingRestaurantIndex] = {
+      ...existingRestaurant,
+      glutenSafetyCategory: deriveRestaurantCategory(mergedMenuItems),
+      glutenSafetyRating: deriveRestaurantSafetyRating(mergedMenuItems),
+      menuItems: mergedMenuItems,
+      cautionSummary: buildCautionSummary(mergedMenuItems),
+      detailSummary: buildDetailSummary(existingRestaurant.name, mergedMenuItems),
+      dataSource: "sample"
+    };
+  });
+
+  return mergedRestaurants;
+}
+
+function buildRestaurantFromImportedBatch(
+  batch: ImportedRestaurantBatch
+): SampleRestaurant {
+  const coordinates = getApproximateCoordinates(batch);
+  const menuItems = batch.meals.map((meal) => buildImportedMenuItem(batch, meal));
+
+  return {
+    slug: slugify(batch.restaurantName),
+    name: batch.restaurantName,
+    address: `${batch.address}, ${batch.city}, ${batch.state} ${batch.zip}`,
+    neighborhood: deriveNeighborhood(batch.address),
+    latitude: coordinates.latitude,
+    longitude: coordinates.longitude,
+    distanceMiles: estimateDistanceMiles(coordinates.latitude, coordinates.longitude),
+    glutenSafetyCategory: deriveRestaurantCategory(menuItems),
+    glutenSafetyRating: deriveRestaurantSafetyRating(menuItems),
+    menuItems,
+    cautionSummary: buildCautionSummary(menuItems),
+    detailSummary: buildDetailSummary(batch.restaurantName, menuItems),
+    dataSource: "sample"
+  };
+}
+
+function buildImportedMenuItem(
+  batch: ImportedRestaurantBatch,
+  meal: ImportedRestaurantBatch["meals"][number]
+): SampleMenuItem {
+  const [
+    dishName,
+    priceLabel,
+    dietaryFlags,
+    confidenceLevel,
+    sourceType,
+    notes,
+    lastVerified
+  ] = meal;
+  const dietaryAttributes: DietaryAttributes = {
+    glutenFree: dietaryFlags[0],
+    soyFree: dietaryFlags[1],
+    nutFree: dietaryFlags[2],
+    kosher: dietaryFlags[3],
+    halal: dietaryFlags[4]
+  };
+  const status = getImportedStatus(dietaryAttributes.glutenFree);
+  const confidenceNote = notes ?? buildConfidenceNote({
+    dishName,
+    confidenceLevel,
+    sourceType,
+    lastVerified,
+    glutenFree: dietaryAttributes.glutenFree
+  });
+
+  return {
+    name: dishName,
+    status,
+    verificationMethod: humanizeImportedSourceType(sourceType),
+    confidenceNote,
+    rationale: buildImportedRationale({
+      dishName,
+      restaurantName: batch.restaurantName,
+      dietaryAttributes,
+      notes
+    }),
+    priceLabel: priceLabel ?? "Price TBD",
+    prepTimeMinutes: inferPrepTimeMinutes(dishName),
+    searchTags: inferSearchTags(dishName, batch.restaurantName, dietaryAttributes),
+    verificationBadges: inferImportedVerificationBadges({
+      sourceType,
+      status
+    }),
+    safetyLevel: inferImportedSafetyLevel({
+      glutenFree: dietaryAttributes.glutenFree,
+      confidenceLevel,
+      sourceType
+    }),
+    dietaryAttributes,
+    confidenceLevel,
+    sourceType,
+    lastVerified
+  };
+}
+
+function getImportedStatus(glutenFree: DietaryFlagValue): SampleMenuItem["status"] {
+  if (glutenFree === "yes") {
+    return "Verified Safe";
+  }
+
+  if (glutenFree === "no") {
+    return "Not Verified (Contains Gluten)";
+  }
+
+  return "Needs Review";
+}
+
+function humanizeImportedSourceType(sourceType: ImportedSourceType) {
+  switch (sourceType) {
+    case "restaurant_label":
+      return "Restaurant labeled";
+    case "staff_confirmation":
+      return "Staff confirmed";
+    case "menu_review":
+      return "Menu reviewed";
+    case "manual_research":
+      return "Manual research";
+    default:
+      return "User submitted list";
+  }
+}
+
+function buildConfidenceNote({
+  dishName,
+  confidenceLevel,
+  sourceType,
+  lastVerified,
+  glutenFree
+}: {
+  dishName: string;
+  confidenceLevel: ImportedConfidenceLevel;
+  sourceType: ImportedSourceType;
+  lastVerified: string;
+  glutenFree: DietaryFlagValue;
+}) {
+  const statusLabel =
+    glutenFree === "yes"
+      ? "marked gluten-free"
+      : glutenFree === "no"
+        ? "marked not gluten-free"
+        : "still awaiting a clearer gluten call";
+
+  return `${dishName} is ${statusLabel} in the imported ${humanizeImportedSourceType(
+    sourceType
+  ).toLowerCase()} dataset with ${confidenceLevel} confidence as of ${lastVerified}.`;
+}
+
+function buildImportedRationale({
+  dishName,
+  restaurantName,
+  dietaryAttributes,
+  notes
+}: {
+  dishName: string;
+  restaurantName: string;
+  dietaryAttributes: DietaryAttributes;
+  notes: string | null;
+}) {
+  if (notes) {
+    return notes;
+  }
+
+  const extraSignals = formatPositiveDietarySignals(dietaryAttributes).filter(
+    (signal) => signal !== "Gluten-Free"
+  );
+
+  if (dietaryAttributes.glutenFree === "yes") {
+    return extraSignals.length > 0
+      ? `${dishName} at ${restaurantName} is marked gluten-free and also reads as ${extraSignals.join(
+          ", "
+        ).toLowerCase()} in the imported list.`
+      : `${dishName} at ${restaurantName} is marked gluten-free in the imported list.`;
+  }
+
+  if (dietaryAttributes.glutenFree === "no") {
+    return `${dishName} at ${restaurantName} is marked as not gluten-free in the imported list.`;
+  }
+
+  return `${dishName} at ${restaurantName} needs more review before the gluten status should be trusted.`;
+}
+
+function inferImportedVerificationBadges({
+  sourceType,
+  status
+}: {
+  sourceType: ImportedSourceType;
+  status: SampleMenuItem["status"];
+}) {
+  if (status !== "Verified Safe") {
+    return [];
+  }
+
+  if (sourceType === "restaurant_label" || sourceType === "staff_confirmation") {
+    return ["Kitchen Certified"] satisfies VerificationBadge[];
+  }
+
+  if (sourceType === "user_list" || sourceType === "menu_review") {
+    return ["User Vetted"] satisfies VerificationBadge[];
+  }
+
+  return [];
+}
+
+function inferImportedSafetyLevel({
+  glutenFree,
+  confidenceLevel,
+  sourceType
+}: {
+  glutenFree: DietaryFlagValue;
+  confidenceLevel: ImportedConfidenceLevel;
+  sourceType: ImportedSourceType;
+}) {
+  if (glutenFree === "no") {
+    return "Contains Gluten" satisfies SafetyLevel;
+  }
+
+  if (
+    glutenFree === "yes" &&
+    confidenceLevel === "high" &&
+    (sourceType === "restaurant_label" || sourceType === "staff_confirmation")
+  ) {
+    return "Celiac-Safer" satisfies SafetyLevel;
+  }
+
+  return "Gluten-Friendly" satisfies SafetyLevel;
+}
+
+function inferPrepTimeMinutes(dishName: string) {
+  const normalizedDishName = dishName.toLowerCase();
+
+  if (
+    normalizedDishName.includes("salad") ||
+    normalizedDishName.includes("dip") ||
+    normalizedDishName.includes("pudding") ||
+    normalizedDishName.includes("baklava")
+  ) {
+    return 8;
+  }
+
+  if (
+    normalizedDishName.includes("taco") ||
+    normalizedDishName.includes("wrap") ||
+    normalizedDishName.includes("sandwich") ||
+    normalizedDishName.includes("burger") ||
+    normalizedDishName.includes("bowl")
+  ) {
+    return 12;
+  }
+
+  if (
+    normalizedDishName.includes("pizza") ||
+    normalizedDishName.includes("pasta") ||
+    normalizedDishName.includes("lasagna") ||
+    normalizedDishName.includes("stromboli")
+  ) {
+    return 18;
+  }
+
+  if (
+    normalizedDishName.includes("salmon") ||
+    normalizedDishName.includes("shrimp") ||
+    normalizedDishName.includes("fish") ||
+    normalizedDishName.includes("ribeye") ||
+    normalizedDishName.includes("steak") ||
+    normalizedDishName.includes("duck") ||
+    normalizedDishName.includes("chicken") ||
+    normalizedDishName.includes("catfish")
+  ) {
+    return 16;
+  }
+
+  return 14;
+}
+
+function inferSearchTags(
+  dishName: string,
+  restaurantName: string,
+  dietaryAttributes: DietaryAttributes
+) {
+  const keywords = `${dishName} ${restaurantName}`
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((token) => token.length > 2);
+  const tagSet = new Set<string>(keywords);
+
+  if (dishName.toLowerCase().includes("bbq") || dishName.toLowerCase().includes("barbecue")) {
+    tagSet.add("barbecue");
+    tagSet.add("bbq");
+  }
+
+  if (dishName.toLowerCase().includes("pizza")) {
+    tagSet.add("pizza");
+  }
+
+  if (dishName.toLowerCase().includes("salad")) {
+    tagSet.add("salad");
+  }
+
+  if (dishName.toLowerCase().includes("taco")) {
+    tagSet.add("taco");
+    tagSet.add("mexican");
+  }
+
+  if (dietaryAttributes.glutenFree === "yes") {
+    tagSet.add("gluten-free");
+  }
+
+  if (dietaryAttributes.kosher === "yes") {
+    tagSet.add("kosher");
+  }
+
+  if (dietaryAttributes.halal === "yes") {
+    tagSet.add("halal");
+  }
+
+  return Array.from(tagSet);
+}
+
+function deriveRestaurantCategory(menuItems: SampleMenuItem[]) {
+  const safeItemCount = menuItems.filter(
+    (item) => item.status === "Verified Safe"
+  ).length;
+
+  if (safeItemCount === 0) {
+    return "Contains Gluten";
+  }
+
+  return "Verified Menu Items";
+}
+
+function deriveRestaurantSafetyRating(menuItems: SampleMenuItem[]) {
+  const verifiedSafeCount = menuItems.filter(
+    (item) => item.status === "Verified Safe"
+  ).length;
+  const saferCount = menuItems.filter(
+    (item) => item.safetyLevel === "Celiac-Safer"
+  ).length;
+
+  const ratio = menuItems.length === 0 ? 0 : verifiedSafeCount / menuItems.length;
+  const bonus = saferCount > 0 ? 0.2 : 0;
+
+  return Number((3 + ratio * 1.8 + bonus).toFixed(1));
+}
+
+function buildCautionSummary(menuItems: SampleMenuItem[]) {
+  const containsGlutenCount = menuItems.filter(
+    (item) => item.status === "Not Verified (Contains Gluten)"
+  ).length;
+
+  if (containsGlutenCount > 0) {
+    return "This menu is mixed, so check the specific dish before treating the restaurant as a safe default.";
+  }
+
+  return "This imported menu leans safer, but shared prep and ingredient changes should still be confirmed when needed.";
+}
+
+function buildDetailSummary(
+  restaurantName: string,
+  menuItems: SampleMenuItem[]
+) {
+  const safeItemCount = menuItems.filter(
+    (item) => item.status === "Verified Safe"
+  ).length;
+
+  return `${restaurantName} currently has ${menuItems.length} imported menu item${
+    menuItems.length === 1 ? "" : "s"
+  }, with ${safeItemCount} marked gluten-free in the shared dataset.`;
+}
+
+function mergeMenuItems(
+  existingMenuItems: SampleMenuItem[],
+  importedMenuItems: SampleMenuItem[]
+) {
+  const menuItemsByName = new Map<string, SampleMenuItem>();
+
+  existingMenuItems.forEach((menuItem) => {
+    menuItemsByName.set(normalizeText(menuItem.name), menuItem);
+  });
+
+  importedMenuItems.forEach((menuItem) => {
+    menuItemsByName.set(normalizeText(menuItem.name), menuItem);
+  });
+
+  return Array.from(menuItemsByName.values()).sort((menuItemA, menuItemB) => {
+    const statusScoreA = menuItemA.status === "Verified Safe" ? 0 : 1;
+    const statusScoreB = menuItemB.status === "Verified Safe" ? 0 : 1;
+
+    if (statusScoreA !== statusScoreB) {
+      return statusScoreA - statusScoreB;
+    }
+
+    return menuItemA.name.localeCompare(menuItemB.name);
+  });
+}
+
+function deriveNeighborhood(addressLine: string) {
+  if (addressLine.includes("University")) {
+    return "University Boulevard";
+  }
+
+  if (addressLine.includes("McFarland")) {
+    return "McFarland Corridor";
+  }
+
+  if (addressLine.includes("Greensboro")) {
+    return "Greensboro Avenue";
+  }
+
+  if (addressLine.includes("Jack Warner")) {
+    return "Riverfront";
+  }
+
+  if (addressLine.includes("Skyland")) {
+    return "Skyland Boulevard";
+  }
+
+  if (addressLine.includes("25th")) {
+    return "Midtown Tuscaloosa";
+  }
+
+  if (addressLine.includes("7th")) {
+    return "West End";
+  }
+
+  return "Tuscaloosa";
+}
+
+function getApproximateCoordinates(batch: ImportedRestaurantBatch) {
+  const corridorCenter = getCorridorCenter(batch.address);
+  const hash = hashString(`${batch.restaurantName}|${batch.address}|${batch.zip}`);
+  const latitudeOffset = (((hash % 1000) / 1000) - 0.5) * 0.018;
+  const longitudeOffset = ((((Math.floor(hash / 1000) % 1000) / 1000) - 0.5) * 0.024);
+
+  return {
+    latitude: Number((corridorCenter.latitude + latitudeOffset).toFixed(6)),
+    longitude: Number((corridorCenter.longitude + longitudeOffset).toFixed(6))
+  };
+}
+
+function getCorridorCenter(addressLine: string) {
+  if (addressLine.includes("University")) {
+    return { latitude: 33.2098, longitude: -87.5538 };
+  }
+
+  if (addressLine.includes("McFarland")) {
+    return { latitude: 33.2064, longitude: -87.5312 };
+  }
+
+  if (addressLine.includes("Greensboro")) {
+    return { latitude: 33.2005, longitude: -87.5614 };
+  }
+
+  if (addressLine.includes("Jack Warner")) {
+    return { latitude: 33.2148, longitude: -87.5611 };
+  }
+
+  if (addressLine.includes("Skyland")) {
+    return { latitude: 33.1874, longitude: -87.5254 };
+  }
+
+  if (addressLine.includes("25th")) {
+    return { latitude: 33.1962, longitude: -87.5639 };
+  }
+
+  if (addressLine.includes("7th")) {
+    return { latitude: 33.2063, longitude: -87.5587 };
+  }
+
+  return TUSCALOOSA_CENTER;
+}
+
+function hashString(value: string) {
+  let hash = 0;
+
+  for (const character of value) {
+    hash = (hash * 31 + character.charCodeAt(0)) >>> 0;
+  }
+
+  return hash;
+}
+
+function estimateDistanceMiles(latitude: number, longitude: number) {
+  return Number(
+    getDistanceMiles(TUSCALOOSA_CENTER, {
+      latitude,
+      longitude
+    }).toFixed(1)
+  );
+}
+
+function getDistanceMiles(
+  origin: { latitude: number; longitude: number },
+  destination: { latitude: number; longitude: number }
+) {
+  const toRadians = (degrees: number) => (degrees * Math.PI) / 180;
+  const earthRadiusMiles = 3958.8;
+  const latitudeDelta = toRadians(destination.latitude - origin.latitude);
+  const longitudeDelta = toRadians(destination.longitude - origin.longitude);
+  const latitudeA = toRadians(origin.latitude);
+  const latitudeB = toRadians(destination.latitude);
+  const haversineDistance =
+    Math.sin(latitudeDelta / 2) ** 2 +
+    Math.cos(latitudeA) *
+      Math.cos(latitudeB) *
+      Math.sin(longitudeDelta / 2) ** 2;
+
+  return (
+    2 *
+    earthRadiusMiles *
+    Math.asin(Math.min(1, Math.sqrt(haversineDistance)))
+  );
+}
+
+function getFullAddressKey(fullAddress: string) {
+  const [addressLine = "", city = "", stateAndZip = ""] = fullAddress.split(",");
+  const state = stateAndZip.trim().split(/\s+/)[0] ?? "";
+
+  return getAddressKey(addressLine.trim(), city.trim(), state);
+}
+
+function getAddressKey(addressLine: string, city: string, state: string) {
+  return [
+    normalizeText(addressLine),
+    normalizeText(city),
+    normalizeText(state)
+  ].join("|");
+}
+
+function normalizeText(value: string) {
+  return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, " ");
+}
+
+function slugify(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+export function formatPositiveDietarySignals(
+  dietaryAttributes: DietaryAttributes
+) {
+  const signals: string[] = [];
+
+  if (dietaryAttributes.glutenFree === "yes") {
+    signals.push("Gluten-Free");
+  }
+
+  if (dietaryAttributes.soyFree === "yes") {
+    signals.push("Soy-Free");
+  }
+
+  if (dietaryAttributes.nutFree === "yes") {
+    signals.push("Nut-Free");
+  }
+
+  if (dietaryAttributes.kosher === "yes") {
+    signals.push("Kosher");
+  }
+
+  if (dietaryAttributes.halal === "yes") {
+    signals.push("Halal");
+  }
+
+  return signals;
+}

@@ -33,7 +33,10 @@ import {
   type LiveSearchResult,
   type SearchLocation
 } from "@/lib/maps-live-search";
-import { type SampleRestaurant } from "@/lib/sample-data";
+import {
+  formatPositiveDietarySignals,
+  type SampleRestaurant
+} from "@/lib/sample-data";
 import { cn } from "@/lib/utils";
 
 declare global {
@@ -502,6 +505,8 @@ export function SearchMapExplorer({
                       {result.supportingText}
                     </p>
 
+                    <DietarySignalsRow result={result} />
+
                     <div className="mt-4 flex flex-wrap gap-2">
                       <Button
                         size="sm"
@@ -653,6 +658,29 @@ function StatusChip({ label }: { label: string }) {
     <span className="rounded-full border bg-background px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
       {label}
     </span>
+  );
+}
+
+function DietarySignalsRow({ result }: { result: LiveSearchResult }) {
+  const labels = result.matchedMenuItems[0]?.dietaryAttributes
+    ? formatPositiveDietarySignals(result.matchedMenuItems[0].dietaryAttributes)
+    : [];
+
+  if (labels.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="mt-4 flex flex-wrap gap-2">
+      {labels.map((label) => (
+        <span
+          key={label}
+          className="rounded-full border bg-background px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground"
+        >
+          {label}
+        </span>
+      ))}
+    </div>
   );
 }
 

@@ -18,7 +18,11 @@ import {
   type FeedFilter,
   type MealFeedEntry
 } from "@/lib/meal-query";
-import { type SampleRestaurant, type VerificationBadge } from "@/lib/sample-data";
+import {
+  formatPositiveDietarySignals,
+  type SampleRestaurant,
+  type VerificationBadge
+} from "@/lib/sample-data";
 import { cn } from "@/lib/utils";
 
 const FEED_BATCH_SIZE = 4;
@@ -235,6 +239,10 @@ export function HomePageClient({
                         <p className="mt-5 max-w-2xl text-sm leading-7 text-foreground/85">
                           {entry.menuItem.confidenceNote}
                         </p>
+
+                        <DietarySignalPills
+                          dietarySignals={entry.menuItem.dietaryAttributes}
+                        />
                       </div>
 
                       <div className="mt-4 grid gap-3 md:grid-cols-[1.15fr_0.85fr]">
@@ -341,5 +349,34 @@ function VerificationPill({ badge }: { badge: VerificationBadge }) {
       {icon}
       {badge}
     </span>
+  );
+}
+
+function DietarySignalPills({
+  dietarySignals
+}: {
+  dietarySignals?: MealFeedEntry["menuItem"]["dietaryAttributes"];
+}) {
+  if (!dietarySignals) {
+    return null;
+  }
+
+  const labels = formatPositiveDietarySignals(dietarySignals);
+
+  if (labels.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="mt-4 flex flex-wrap gap-2">
+      {labels.map((label) => (
+        <span
+          key={label}
+          className="rounded-full border bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground"
+        >
+          {label}
+        </span>
+      ))}
+    </div>
   );
 }

@@ -52,6 +52,7 @@ For `source_type`, use:
 - `menu_review`
 - `staff_confirmation`
 - `manual_research`
+- `user_list`
 
 ## Practical Advice
 
