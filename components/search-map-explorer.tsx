@@ -504,11 +504,8 @@ export function SearchMapExplorer({
                   >
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                        <h3 className="text-lg font-bold tracking-tight text-foreground">
                           {result.name}
-                        </p>
-                        <h3 className="mt-2 text-xl font-semibold">
-                          {result.matchedMenuItems[0]?.name ?? "Approved meal result"}
                         </h3>
                         <p className="mt-2 text-sm text-muted-foreground">
                           {result.address}
@@ -541,6 +538,15 @@ export function SearchMapExplorer({
                             : "Reviewed data"
                         }
                       />
+                    </div>
+
+                    <div className="mt-4">
+                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                        Dish match
+                      </p>
+                      <p className="mt-1 text-base font-semibold text-foreground/90">
+                        {result.matchedMenuItems[0]?.name ?? "Approved meal result"}
+                      </p>
                     </div>
 
                     <p className="mt-4 text-sm leading-6 text-muted-foreground">
